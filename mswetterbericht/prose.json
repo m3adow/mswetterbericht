@@ -1,0 +1,40 @@
+{
+  "futures": {
+    "green": ["grün"],
+    "red": ["rot"],
+    "unchanged": ["unverändert"],
+    "prefixes": {
+      "light": [
+        "blass",
+        "einen Hauch von ",
+        "zart",
+        "leicht ",
+        "blässlich "
+      ],
+      "heavy": [
+        "tief",
+        "dunkel",
+        "fett ",
+        "dick ",
+        "ordentlich "
+      ]
+    }
+  },
+  "special": {
+    "green": ["gestiegen", "geklettert"],
+    "red": ["gefallen", "gesunken"],
+    "unchanged": ["unverändert"],
+    "prefixes": {
+      "light": [
+        "leicht",
+        "zärtlich",
+        "etwas"
+      ],
+      "heavy": [
+        "ordentlich",
+        "fett",
+        "stark"
+      ]
+    }
+  }
+}
