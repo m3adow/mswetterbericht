@@ -3,12 +3,12 @@ from bs4 import BeautifulSoup
 import re
 import json
 import random
+import sys
 
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Firefox/91.0'}
 prose_template = 'Guten Morgen zusammen,  ' \
-                 'die heutige Wettervorhersage für alle, {greeting_joke}:\n\n' \
-                 '{investing_prose}\n' \
-                 '{special_prose}\n\n' \
+                 'die heutige Wettervorhersage für alle, <<INSERTJOKEHERE>>:\n\n' \
+                 '{prose_lines}\n\n' \
                  'Und natürlich die Miesmuschel: !mm Wird heute ein grüner Tag?\n\n'
 investing_prose_line = '[{name}]({url}) {verb} **{word_change}**, mit **{pct_change}**.'
 special_prose_line = '[{name}]({url}) {verb} **{word_change}**. Der Preis liegt bei **{abs_value}** was einer' \
@@ -92,7 +92,12 @@ def evaluate_change(change: str, prose_dict: dict) -> str:
 
 
 def generate_prose(investing_results, special_results) -> str:
-    with open('prose.json', encoding='utf8') as f:
+    if len(sys.argv) >= 2:
+        myfile = sys.argv[1]
+    else:
+        myfile = 'prose.json'
+
+    with open(myfile, encoding='utf8') as f:
         prose_json = json.load(f)
     investing_lines = []
     for name, url, verb, pct_change in investing_results:
@@ -106,8 +111,7 @@ def generate_prose(investing_results, special_results) -> str:
             abs_value=change_list[0], pct_change=change_list[1]
         ))
 
-    for line in investing_lines:
-        print(line)
+    return prose_template.format(prose_lines='\n'.join(investing_lines))
         
 
 
@@ -146,8 +150,6 @@ for name, verb, url, filter_function in special_values:
     filter_result = filter_function()
     special_results.append([name, url, verb] + [filter_result])
 
-print(investing_results)
-print(special_results)
 
-generate_prose(investing_results, special_results)
+print(generate_prose(investing_results, special_results))
 
