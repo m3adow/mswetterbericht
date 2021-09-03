@@ -7,11 +7,11 @@ import sys
 
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Firefox/91.0'}
 prose_template = 'Guten Morgen zusammen,  ' \
-                 'die heutige Wettervorhersage für alle, <<INSERTJOKEHERE>>:\n\n' \
+                 'die heutige Wettervorhersage für alle, <<hier könnte Ihr Spruch stehen>>:\n\n' \
                  '{prose_lines}\n\n' \
                  'Und natürlich die Miesmuschel: !mm Wird heute ein grüner Tag?\n\n'
-investing_prose_line = '[{name}]({url}) {verb} **{word_change}**, mit **{pct_change}**.'
-special_prose_line = '[{name}]({url}) {verb} **{word_change}**. Der Preis liegt bei **{abs_value}** was einer' \
+investing_prose_line = '* [{name}]({url}) {verb} **{word_change}**, mit **{pct_change}**.'
+special_prose_line = '* [{name}]({url}) {verb} **{word_change}**. Der Preis liegt bei **{abs_value}** was einer' \
                      ' Veränderung von **{pct_change}** zum Vortag entspricht.'
 
 random.seed()
@@ -42,9 +42,11 @@ def bitcoin_change() -> list:
     data = requests.get(
         coingecko_api_endpoint + coin_data_path + coin, params=params
     )
+    pct_change = round(data.json()['market_data']['price_change_percentage_24h'], 2)
+    price = data.json()['market_data']['current_price'][currency]
     price_data = [
-        data.json()['market_data']['current_price'][currency],
-        round(data.json()['market_data']['price_change_percentage_24h'], 2)
+        "{:,}".format(price),  # prettifies number with comma
+        str(pct_change) + '%'
     ]
 
     return list(price_data)
@@ -70,11 +72,7 @@ def co2_change() -> list:
 
 
 def evaluate_change(change: str, prose_dict: dict) -> str:
-    try:
-        change = float(change.rstrip('%'))
-    # BTC change already is a float
-    except AttributeError:
-        pass
+    change = float(change.rstrip('%'))
 
     if change > 0:
         color = random.choice(prose_dict['green'])
@@ -112,9 +110,6 @@ def generate_prose(investing_results, special_results) -> str:
         ))
 
     return prose_template.format(prose_lines='\n'.join(investing_lines))
-        
-
-
 
 
 investing_values = (
@@ -149,7 +144,6 @@ special_results = []
 for name, verb, url, filter_function in special_values:
     filter_result = filter_function()
     special_results.append([name, url, verb] + [filter_result])
-
 
 print(generate_prose(investing_results, special_results))
 
