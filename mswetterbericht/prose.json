@@ -12,11 +12,11 @@
         "blässlich "
       ],
       "heavy": [
-        "tief",
         "dunkel",
         "fett ",
         "dick ",
-        "ordentlich "
+        "ordentlich ",
+        "mächtig "
       ]
     }
   },
@@ -26,14 +26,16 @@
     "unchanged": ["unverändert"],
     "prefixes": {
       "light": [
-        "leicht",
-        "zärtlich",
-        "etwas"
+        "leicht ",
+        "zärtlich ",
+        "etwas ",
+        "ein bisschen "
       ],
       "heavy": [
-        "ordentlich",
-        "fett",
-        "stark"
+        "ordentlich ",
+        "fett ",
+        "stark ",
+        "mächtig "
       ]
     }
   }
