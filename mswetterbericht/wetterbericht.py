@@ -12,26 +12,32 @@ prose_template = 'Guten Morgen zusammen,  ' \
                  '* [Die Wettervorhersage](https://www.wetter.com/deutschland/dachsenhausen/DE0001902.html) für' \
                  ' Dachsenhausen sagt einen **DASMUSSMANUELLEINGETRAGENWERDEN** Tag voraus.\n\n' \
                  'Und natürlich die Miesmuschel: !mm Wird heute ein grüner Tag?\n\n'
-investing_prose_line = '* [{name}]({url}) {verb} **{word_change}**, mit **{pct_change}**.'
+investing_prose_line = '* [{name}]({url}) {verb} **{word_change}**, mit **{pct_change}** (Kurs: {absolute_value}).'
 special_prose_line = '* [{name}]({url}) {verb} **{word_change}**. Der Preis liegt bei **{abs_value}** was einer' \
                      ' Veränderung von **{pct_change}** zum Vortag entspricht.'
 
 random.seed()
 
 
-def bond_commodities_filter(soup: BeautifulSoup) -> str:
+def bond_commodities_filter(soup: BeautifulSoup) -> tuple:
     mydiv = soup.find('div', {'class': 'top bold inlineblock'})
-    percentage_span = mydiv.find_all('span')[-1]
-    return percentage_span.contents[0]
+    spans = mydiv.find_all('span')
+    pct_change = spans[-1].contents[0] # Percentage change
+    absolute_value = spans[0].contents[0]
+    return pct_change, absolute_value
 
 
-def index_filter(soup: BeautifulSoup) -> str:
-    myspan = soup.find('span', {'data-test': 'instrument-price-change-percent'})
+def index_filter(soup: BeautifulSoup) -> tuple:
+    pct_span = soup.find('span', {'data-test': 'instrument-price-change-percent'})
     # Differentiate between negative and positive values due to differing formatting
-    if myspan.contents[2] == '+':
-        return '+' + myspan.contents[4] + '%'
+    if pct_span.contents[2] == '+':
+        pct_change = '+' + pct_span.contents[4] + '%'
     else:
-        return myspan.contents[2] + '%'
+        pct_change = pct_span.contents[2] + '%'
+
+    absolute_value = soup.find('span', {'data-test': 'instrument-price-last'}).contents[0]
+
+    return pct_change, absolute_value
 
 
 def bitcoin_change() -> list:
@@ -104,10 +110,11 @@ def generate_prose(investing_results, special_results) -> str:
     with open(myfile, encoding='utf8') as f:
         prose_json = json.load(f)
     investing_lines = []
-    for name, url, verb, pct_change in investing_results:
+    for name, url, verb, pct_change, absolute_value in investing_results:
         investing_lines.append(investing_prose_line.format(
             name=name, url=url, verb=verb,
-            word_change=evaluate_change(pct_change, prose_json['futures']), pct_change=pct_change
+            word_change=evaluate_change(pct_change, prose_json['futures']), pct_change=pct_change,
+            absolute_value=absolute_value
         ))
     for name, url, verb, change_list in special_results:
         investing_lines.append(special_prose_line.format(
@@ -143,8 +150,8 @@ for name, verb, url, filter_function in investing_values:
     if r.status_code != 200:
         print("Got HTTP %s for '%s'. Skipping." % (r.status_code, name))
     soup = BeautifulSoup(r.text, 'html.parser')
-    value = filter_function(soup)
-    investing_results.append([name, url, verb, value])
+    pct_change, absolute_value = filter_function(soup)
+    investing_results.append([name, url, verb, pct_change, absolute_value])
 
 special_results = []
 for name, verb, url, filter_function in special_values:
