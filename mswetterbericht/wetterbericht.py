@@ -8,7 +8,9 @@ import sys
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Firefox/91.0'}
 prose_template = 'Guten Morgen zusammen,  ' \
                  'die heutige Wettervorhersage für alle, <<hier könnte Ihr Spruch stehen>>:\n\n' \
-                 '{prose_lines}\n\n' \
+                 '{prose_lines}\n' \
+                 '* [Die Wettervorhersage](https://www.wetter.com/deutschland/dachsenhausen/DE0001902.html) für' \
+                 ' Dachsenhausen sagt einen **DASMUSSMANUELLEINGETRAGENWERDEN** Tag voraus.\n\n' \
                  'Und natürlich die Miesmuschel: !mm Wird heute ein grüner Tag?\n\n'
 investing_prose_line = '* [{name}]({url}) {verb} **{word_change}**, mit **{pct_change}**.'
 special_prose_line = '* [{name}]({url}) {verb} **{word_change}**. Der Preis liegt bei **{abs_value}** was einer' \
@@ -42,11 +44,15 @@ def bitcoin_change() -> list:
     data = requests.get(
         coingecko_api_endpoint + coin_data_path + coin, params=params
     )
-    pct_change = round(data.json()['market_data']['price_change_percentage_24h'], 2)
+    pct_change = str(round(data.json()['market_data']['price_change_percentage_24h'], 2))
+    if float(pct_change) > 0:
+        pct_change = '+' + pct_change
+    elif float(pct_change) < 0:
+        pct_change = '-' + pct_change
     price = data.json()['market_data']['current_price'][currency]
     price_data = [
-        "{:,}".format(price),  # prettifies number with comma
-        str(pct_change) + '%'
+        "${:,}".format(price),  # prettifies number with comma and dollar symbol
+        pct_change + '%'
     ]
 
     return list(price_data)
