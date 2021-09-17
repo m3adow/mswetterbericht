@@ -45,16 +45,16 @@ def bitcoin_change() -> list:
     coin_data_path = '/coins/'
     coin = 'bitcoin'
     currency = 'usd'
-    params = {'tickers': False, 'market_data': True, 'community_data': True, 'developer_data': True,
-              'sparkline': True}
+    params = {'tickers': False, 'market_data': True, 'community_data': False, 'developer_data': False,
+              'sparkline': False}
     data = requests.get(
         coingecko_api_endpoint + coin_data_path + coin, params=params
     )
     pct_change = str(round(data.json()['market_data']['price_change_percentage_24h'], 2))
+
+    # Coingecko does not prefix a '+'
     if float(pct_change) > 0:
         pct_change = '+' + pct_change
-    elif float(pct_change) < 0:
-        pct_change = '-' + pct_change
     price = data.json()['market_data']['current_price'][currency]
     price_data = [
         "${:,}".format(price),  # prettifies number with comma and dollar symbol
