@@ -13,6 +13,7 @@ prose_template = 'Guten Morgen zusammen,  ' \
                  ' Dachsenhausen sagt einen **DASMUSSMANUELLEINGETRAGENWERDEN** Tag voraus.\n\n' \
                  'Und natürlich die Miesmuschel: !mm Wird heute ein grüner Tag?\n\n'
 investing_prose_line = '* [{name}]({url}) {verb} **{word_change}**, mit **{pct_change}** (Kurs: {absolute_value}).'
+error_prose_line = '* [{name}]({url}) {verb} **unverständlich/fehlerhaft**: **{pct_change}** (Kurs: {absolute_value}).'
 special_prose_line = '* [{name}]({url}) {verb} **{word_change}**. Der Preis liegt bei **{abs_value}** was einer' \
                      ' Veränderung von **{pct_change}** zum Vortag entspricht.'
 
@@ -111,11 +112,17 @@ def generate_prose(investing_results, special_results) -> str:
         prose_json = json.load(f)
     investing_lines = []
     for name, url, verb, pct_change, absolute_value in investing_results:
-        investing_lines.append(investing_prose_line.format(
-            name=name, url=url, verb=verb,
-            word_change=evaluate_change(pct_change, prose_json['futures']), pct_change=pct_change,
-            absolute_value=absolute_value
-        ))
+        # investing.com does return some strange issues sometimes
+        try:
+            investing_lines.append(investing_prose_line.format(
+                name=name, url=url, verb=verb,
+                word_change=evaluate_change(pct_change, prose_json['futures']), pct_change=pct_change,
+                absolute_value=absolute_value
+            ))
+        except ValueError:
+            investing_lines.append(error_prose_line.format(
+                name=name, url=url, verb=verb, pct_change=pct_change, absolute_value=absolute_value
+            ))
     for name, url, verb, change_list in special_results:
         investing_lines.append(special_prose_line.format(
             name=name, url=url, verb=verb, word_change=evaluate_change(change_list[1], prose_json['special']),
