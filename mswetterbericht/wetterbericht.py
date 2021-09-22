@@ -20,7 +20,7 @@ special_prose_line = '* [{name}]({url}) {verb} **{word_change}**. Der Preis lieg
 random.seed()
 
 
-def bond_commodities_filter(soup: BeautifulSoup) -> tuple:
+def bond_filter(soup: BeautifulSoup) -> tuple:
     mydiv = soup.find('div', {'class': 'top bold inlineblock'})
     spans = mydiv.find_all('span')
     pct_change = spans[-1].contents[0] # Percentage change
@@ -28,7 +28,7 @@ def bond_commodities_filter(soup: BeautifulSoup) -> tuple:
     return pct_change, absolute_value
 
 
-def index_filter(soup: BeautifulSoup) -> tuple:
+def index_commodities_filter(soup: BeautifulSoup) -> tuple:
     pct_span = soup.find('span', {'data-test': 'instrument-price-change-percent'})
     # Differentiate between negative and positive values due to differing formatting
     if pct_span.contents[2] == '+':
@@ -133,14 +133,15 @@ def generate_prose(investing_results, special_results) -> str:
 
 
 investing_values = (
-    ('Schatzkisten', 'sind', 'https://www.investing.com/rates-bonds/u.s.-10-year-bond-yield', bond_commodities_filter),
-    ('🦡 Zukünfte', 'sind', 'https://www.investing.com/indices/germany-30-futures', index_filter),
-    ('💦🦡 Zukünfte', 'sind', 'https://www.investing.com/indices/nq-100-futures', index_filter),
-    ('🕵️ Zukünfte', 'sind', 'https://www.investing.com/indices/us-spx-500-futures', index_filter),
-    ('🐘 2000 Zukünfte', 'sind', 'https://www.investing.com/indices/smallcap-2000-futures', index_filter),
-    ('Der Nikkei', 'ist', 'https://www.investing.com/indices/japan-ni225', index_filter),
-    ('Der Hang Seng', 'ist', 'https://www.investing.com/indices/hang-sen-40', index_filter),
-    ('🔥🛢 Zukünfte', 'sind', 'https://www.investing.com/commodities/brent-oil', bond_commodities_filter),
+    ('Schatzkisten', 'sind', 'https://www.investing.com/rates-bonds/u.s.-10-year-bond-yield', bond_filter),
+    ('🦡 Zukünfte', 'sind', 'https://www.investing.com/indices/germany-30-futures', index_commodities_filter),
+    ('💦🦡 Zukünfte', 'sind', 'https://www.investing.com/indices/nq-100-futures', index_commodities_filter),
+    ('🕵️ Zukünfte', 'sind', 'https://www.investing.com/indices/us-spx-500-futures', index_commodities_filter),
+    ('🐘 2000 Zukünfte', 'sind', 'https://www.investing.com/indices/smallcap-2000-futures', index_commodities_filter),
+    ('Der Nikkei', 'ist', 'https://www.investing.com/indices/japan-ni225', index_commodities_filter),
+    ('Der Hang Seng', 'ist', 'https://www.investing.com/indices/hang-sen-40', index_commodities_filter),
+    ('Der ASX 200', 'ist', 'https://www.investing.com/indices/aus-200', index_commodities_filter),
+    ('🔥🛢 Zukünfte', 'sind', 'https://www.investing.com/commodities/brent-oil', index_commodities_filter),
 )
 
 special_values = (
@@ -153,6 +154,7 @@ special_values = (
 
 investing_results = []
 for name, verb, url, filter_function in investing_values:
+    print(name)
     r = requests.get(url, headers=headers)
     if r.status_code != 200:
         print("Got HTTP %s for '%s'. Skipping." % (r.status_code, name))
