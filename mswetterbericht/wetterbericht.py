@@ -13,7 +13,8 @@ prose_template = 'Guten Morgen zusammen,  ' \
                  ' Dachsenhausen sagt einen **DASMUSSMANUELLEINGETRAGENWERDEN** Tag voraus.\n\n' \
                  'Und natürlich die Miesmuschel: !mm Wird heute ein grüner Tag?\n\n'
 investing_prose_line = '* [{name}]({url}) {verb} **{word_change}**, mit **{pct_change}** (Kurs: {absolute_value}).'
-closed_prose_line = '* [{name}]({url}) {verb} **heute {pct_change}** (Kurs: {absolute_value}).'
+closed_prose_line = '* [{name}]({url}) {verb} ~~**{word_change}**, mit **{pct_change}** (Kurs: {absolute_value})~~ ' \
+                    'heute geschlossen.'
 error_prose_line = '* [{name}]({url}) {verb} **unverständlich/fehlerhaft**: **{pct_change}** (Kurs: {absolute_value}).'
 special_prose_line = '* [{name}]({url}) {verb} **{word_change}**. Der Preis liegt bei **{abs_value}** was einer' \
                      ' Veränderung von **{pct_change}** zum Vortag entspricht.'
@@ -25,12 +26,14 @@ random.seed()
 def bond_filter(soup: BeautifulSoup) -> tuple:
     mydiv = soup.find('div', {'class': 'top bold inlineblock'})
     spans = mydiv.find_all('span')
-    pct_change = spans[-1].contents[0] # Percentage change
+    pct_change = spans[-1].contents[0]  # Percentage change
     absolute_value = spans[0].contents[0]
-    return pct_change, absolute_value
+    # Has to return a boolean as third param due to compatibility with other filters
+    return pct_change, absolute_value, False
 
 
 def index_commodities_filter(soup: BeautifulSoup) -> tuple:
+    is_closed = False
     pct_span = soup.find('span', {'data-test': 'instrument-price-change-percent'})
     # Differentiate between negative and positive values due to differing formatting
     if pct_span.contents[2] == '+':
@@ -45,8 +48,8 @@ def index_commodities_filter(soup: BeautifulSoup) -> tuple:
     myreg = re.compile(r'.*instrument-metadata_text__.*')
     metadata_divs = overdiv.find_all('span', {'class': myreg})
     if metadata_divs[1].contents[0] == 'Closed':
-        pct_change = closed_string
-    return pct_change, absolute_value
+        is_closed = True
+    return pct_change, absolute_value, is_closed
 
 
 def bitcoin_change() -> list:
@@ -119,19 +122,18 @@ def generate_prose(investing_results, special_results) -> str:
     with open(myfile, encoding='utf8') as f:
         prose_json = json.load(f)
     investing_lines = []
-    for name, url, verb, pct_change, absolute_value in investing_results:
+    for name, url, verb, pct_change, absolute_value, is_closed in investing_results:
+        if is_closed:
+            my_prose_line = closed_prose_line
+        else:
+            my_prose_line = investing_prose_line
         # investing.com does return some strange issues sometimes
         try:
-            if pct_change == closed_string:
-                investing_lines.append(closed_prose_line.format(
-                    name=name, url=url, verb=verb, pct_change=pct_change, absolute_value=absolute_value
-                ))
-            else:
-                investing_lines.append(investing_prose_line.format(
-                    name=name, url=url, verb=verb,
-                    word_change=evaluate_change(pct_change, prose_json['futures']), pct_change=pct_change,
-                    absolute_value=absolute_value
-                ))
+            investing_lines.append(my_prose_line.format(
+                name=name, url=url, verb=verb,
+                word_change=evaluate_change(pct_change, prose_json['futures']), pct_change=pct_change,
+                absolute_value=absolute_value
+            ))
         except ValueError:
             investing_lines.append(error_prose_line.format(
                 name=name, url=url, verb=verb, pct_change=pct_change, absolute_value=absolute_value
@@ -171,8 +173,8 @@ for name, verb, url, filter_function in investing_values:
     if r.status_code != 200:
         print("Got HTTP %s for '%s'. Skipping." % (r.status_code, name))
     soup = BeautifulSoup(r.text, 'html.parser')
-    pct_change, absolute_value = filter_function(soup)
-    investing_results.append([name, url, verb, pct_change, absolute_value])
+    pct_change, absolute_value, is_closed = filter_function(soup)
+    investing_results.append([name, url, verb, pct_change, absolute_value, is_closed])
 
 special_results = []
 for name, verb, url, filter_function in special_values:
