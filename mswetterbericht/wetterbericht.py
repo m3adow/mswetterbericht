@@ -13,9 +13,11 @@ prose_template = 'Guten Morgen zusammen,  ' \
                  ' Dachsenhausen sagt einen **DASMUSSMANUELLEINGETRAGENWERDEN** Tag voraus.\n\n' \
                  'Und natürlich die Miesmuschel: !mm Wird heute ein grüner Tag?\n\n'
 investing_prose_line = '* [{name}]({url}) {verb} **{word_change}**, mit **{pct_change}** (Kurs: {absolute_value}).'
+closed_prose_line = '* [{name}]({url}) {verb} **heute {pct_change}** (Kurs: {absolute_value}).'
 error_prose_line = '* [{name}]({url}) {verb} **unverständlich/fehlerhaft**: **{pct_change}** (Kurs: {absolute_value}).'
 special_prose_line = '* [{name}]({url}) {verb} **{word_change}**. Der Preis liegt bei **{abs_value}** was einer' \
                      ' Veränderung von **{pct_change}** zum Vortag entspricht.'
+closed_string = 'geschlossen'
 
 random.seed()
 
@@ -38,6 +40,12 @@ def index_commodities_filter(soup: BeautifulSoup) -> tuple:
 
     absolute_value = soup.find('span', {'data-test': 'instrument-price-last'}).contents[0]
 
+    # Check if exchange is closed
+    overdiv = soup.find('div', {'data-test': 'instrument-header-details'})
+    myreg = re.compile(r'.*instrument-metadata_text__.*')
+    metadata_divs = overdiv.find_all('span', {'class': myreg})
+    if metadata_divs[1].contents[0] == 'Closed':
+        pct_change = closed_string
     return pct_change, absolute_value
 
 
@@ -114,11 +122,16 @@ def generate_prose(investing_results, special_results) -> str:
     for name, url, verb, pct_change, absolute_value in investing_results:
         # investing.com does return some strange issues sometimes
         try:
-            investing_lines.append(investing_prose_line.format(
-                name=name, url=url, verb=verb,
-                word_change=evaluate_change(pct_change, prose_json['futures']), pct_change=pct_change,
-                absolute_value=absolute_value
-            ))
+            if pct_change == closed_string:
+                investing_lines.append(closed_prose_line.format(
+                    name=name, url=url, verb=verb, pct_change=pct_change, absolute_value=absolute_value
+                ))
+            else:
+                investing_lines.append(investing_prose_line.format(
+                    name=name, url=url, verb=verb,
+                    word_change=evaluate_change(pct_change, prose_json['futures']), pct_change=pct_change,
+                    absolute_value=absolute_value
+                ))
         except ValueError:
             investing_lines.append(error_prose_line.format(
                 name=name, url=url, verb=verb, pct_change=pct_change, absolute_value=absolute_value
@@ -154,7 +167,6 @@ special_values = (
 
 investing_results = []
 for name, verb, url, filter_function in investing_values:
-    print(name)
     r = requests.get(url, headers=headers)
     if r.status_code != 200:
         print("Got HTTP %s for '%s'. Skipping." % (r.status_code, name))
