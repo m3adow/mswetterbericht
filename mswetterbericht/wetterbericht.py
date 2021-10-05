@@ -152,6 +152,7 @@ investing_values = (
     ('🦡 Zukünfte', 'sind', 'https://www.investing.com/indices/germany-30-futures', index_commodities_filter),
     ('💦🦡 Zukünfte', 'sind', 'https://www.investing.com/indices/nq-100-futures', index_commodities_filter),
     ('🕵️ Zukünfte', 'sind', 'https://www.investing.com/indices/us-spx-500-futures', index_commodities_filter),
+    ('DAU Johannes Zukünfte', 'sind', 'https://www.investing.com/indices/us-30-futures', index_commodities_filter),
     ('🐘 2000 Zukünfte', 'sind', 'https://www.investing.com/indices/smallcap-2000-futures', index_commodities_filter),
     ('Der Nikkei', 'ist', 'https://www.investing.com/indices/japan-ni225', index_commodities_filter),
     ('Der Hang Seng', 'ist', 'https://www.investing.com/indices/hang-sen-40', index_commodities_filter),
