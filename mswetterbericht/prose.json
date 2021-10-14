@@ -1,41 +1,79 @@
 {
   "futures": {
-    "green": ["grün"],
-    "red": ["rot"],
-    "unchanged": ["unverändert"],
+    "green": [
+      "grün"
+    ],
+    "red": [
+      "rot"
+    ],
+    "unchanged": [
+      "unverändert"
+    ],
     "prefixes": {
       "light": [
         "blass",
         "einen Hauch von ",
         "zart",
         "leicht ",
-        "blässlich "
+        "blässlich ",
+        "ein My ",
+        "minimal ",
+        "geringfügig "
       ],
       "heavy": [
         "dunkel",
         "fett ",
         "dick ",
         "ordentlich ",
-        "mächtig "
+        "mächtig ",
+        "neon",
+        "deftig ",
+        "tief",
+        "knall",
+        "kräftig ",
+        "saftig "
       ]
     }
   },
   "special": {
-    "green": ["gestiegen", "geklettert"],
-    "red": ["gefallen", "gesunken"],
-    "unchanged": ["unverändert"],
+    "green": [
+      "gestiegen",
+      "geklettert",
+      "gewachsen",
+      "explodiert"
+    ],
+    "red": [
+      "gefallen",
+      "gesunken",
+      "getunkt",
+      "verkümmert",
+      "implodiert",
+      "geschrumpft",
+      "geschrumpelt"
+    ],
+    "unchanged": [
+      "unverändert"
+    ],
     "prefixes": {
       "light": [
         "leicht ",
         "zärtlich ",
         "etwas ",
-        "ein bisschen "
+        "ein bisschen ",
+        "ein My ",
+        "minimal ",
+        "geringfügig "
       ],
       "heavy": [
         "ordentlich ",
         "fett ",
         "stark ",
-        "mächtig "
+        "mächtig ",
+        "eklatant ",
+        "dramatisch ",
+        "(besorgnis)erregend ",
+        "massiv ",
+        "deutlich "
       ]
     }
   }
