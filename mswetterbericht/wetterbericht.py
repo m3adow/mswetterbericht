@@ -158,6 +158,7 @@ investing_values = (
     ('Der Hang Seng', 'ist', 'https://www.investing.com/indices/hang-sen-40', index_commodities_filter),
     ('Der ASX 200', 'ist', 'https://www.investing.com/indices/aus-200', index_commodities_filter),
     ('🔥🛢 Zukünfte', 'sind', 'https://www.investing.com/commodities/brent-oil', index_commodities_filter),
+    ('🥇 Zukünfte', 'sind', 'https://www.investing.com/commodities/gold', index_commodities_filter)
 )
 
 special_values = (
