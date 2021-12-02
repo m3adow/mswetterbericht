@@ -13,8 +13,8 @@ prose_template = 'Guten Morgen zusammen,  ' \
                  ' Dachsenhausen sagt einen **DASMUSSMANUELLEINGETRAGENWERDEN** Tag voraus.\n\n' \
                  'Und natürlich die Miesmuschel: !mm Wird heute ein grüner Tag?\n\n'
 investing_prose_line = '* [{name}]({url}) {verb} **{word_change}**, mit **{pct_change}** (Kurs: {absolute_value}).'
-closed_prose_line = '* [{name}]({url}) {verb} ~~**{word_change}**, mit **{pct_change}** (Kurs: {absolute_value})~~ ' \
-                    'heute geschlossen.'
+closed_prose_line = '* [{name}]({url}) {verb} bei Marktschluss **{word_change}** gewesen, mit ' \
+                    '**{pct_change}** (Kurs: {absolute_value}).'
 error_prose_line = '* [{name}]({url}) {verb} **unverständlich/fehlerhaft**: **{pct_change}** (Kurs: {absolute_value}).'
 special_prose_line = '* [{name}]({url}) {verb} **{word_change}**. Der Preis liegt bei **{abs_value}** was einer' \
                      ' Veränderung von **{pct_change}** zum Vortag entspricht.'
@@ -77,22 +77,24 @@ def bitcoin_change() -> list:
 
 
 def co2_change() -> list:
-    url = 'https://www.onvista.de/derivate/index-und-partizipations-zertifikate/' + \
-          'OPEN-END-ROHSTOFF-ZERTIFIKAT-AUF-ICE-ECX-EUA-FUTURES-ECF-IPE-20210628-DE000CU3RPS9'
+    url = 'https://www.onvista.de/derivate/Index-Zertifikate/158135999-CU3RPS-DE000CU3RPS9'
 
     r = requests.get(url, headers=headers)
     if r.status_code != 200:
         print("Got HTTP %s." % r.status_code)
     soup = BeautifulSoup(r.text, 'html.parser')
-    mydiv = soup.find('div', {'id': 'bid', 'class': 'five wide column'})
+    mydiv = soup.find('div', {'class': 'flex-layout flex-layout__align-items--baseline ov-flex-layout--column-sm '
+                                       'outer-spacing--xsmall-bottom text-size--xlarge'})
+    price_raw = mydiv.find('data', {'class': 'text-nowrap text-weight--medium outer-spacing--xsmall-right'}).contents[0]
+    # Change comma to dot, round to two digits (removing trailing zero) and add Euro sign
+    price = round(float(price_raw.replace(',', '.')), 2)
+    pretty_price = str(price) + 'EUR'
 
-    price_raw = mydiv.find('span', {'class': 'price'}).contents[0]
-    price = re.match(r'\d+,\d+', price_raw)[0]
-
-    change = mydiv.find('span', {'class': 'performance-pct'}).contents[0]
+    change = mydiv.find('data', {'class': 'color--cd-positive text-nowrap outer-spacing--xsmall-right'}).contents[0]
+    pretty_change = change.replace(',', '.')
 
     # Change comma to dot before returning
-    return [price, change.replace(',', '.')]
+    return [pretty_price, pretty_change]
 
 
 def evaluate_change(change: str, prose_dict: dict) -> str:
@@ -154,6 +156,8 @@ investing_values = (
     ('🕵️ Zukünfte', 'sind', 'https://www.investing.com/indices/us-spx-500-futures', index_commodities_filter),
     ('DAU Johannes Zukünfte', 'sind', 'https://www.investing.com/indices/us-30-futures', index_commodities_filter),
     ('🐘 2000 Zukünfte', 'sind', 'https://www.investing.com/indices/smallcap-2000-futures', index_commodities_filter),
+    ('Ⓜ🦡️Zukünfte', 'sind', 'https://www.investing.com/indices/germany-mid-cap-50-futures', index_commodities_filter),
+    ('🇪🇺🌲 Zukünfte', 'sind', 'https://www.investing.com/indices/eu-stocks-50-futures', index_commodities_filter),
     ('Der Nikkei', 'ist', 'https://www.investing.com/indices/japan-ni225', index_commodities_filter),
     ('Der Hang Seng', 'ist', 'https://www.investing.com/indices/hang-sen-40', index_commodities_filter),
     ('Der ASX 200', 'ist', 'https://www.investing.com/indices/aus-200', index_commodities_filter),
@@ -164,10 +168,8 @@ investing_values = (
 special_values = (
     ('Der Stückmünzenkurs', 'ist', 'https://www.coingecko.com/en/coins/bitcoin', bitcoin_change),
     ('CO2 Zertifikate', 'sind',
-     'https://www.onvista.de/derivate/index-und-partizipations-zertifikate/' +
-     'OPEN-END-ROHSTOFF-ZERTIFIKAT-AUF-ICE-ECX-EUA-FUTURES-ECF-IPE-20210628-DE000CU3RPS9', co2_change)
+     'https://www.onvista.de/derivate/Index-Zertifikate/158135999-CU3RPS-DE000CU3RPS9', co2_change)
 )
-
 
 investing_results = []
 for name, verb, url, filter_function in investing_values:
