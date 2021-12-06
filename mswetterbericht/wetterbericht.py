@@ -90,7 +90,12 @@ def co2_change() -> list:
     price = round(float(price_raw.replace(',', '.')), 2)
     pretty_price = str(price) + 'EUR'
 
-    change = mydiv.find('data', {'class': 'color--cd-positive text-nowrap outer-spacing--xsmall-right'}).contents[0]
+    # Differentiate between positive and negative change
+    # Maybe change to conditional?
+    try:
+        change = mydiv.find('data', {'class': 'color--cd-positive text-nowrap outer-spacing--xsmall-right'}).contents[0]
+    except AttributeError:
+        change = mydiv.find('data', {'class': 'color--cd-negative text-nowrap outer-spacing--xsmall-right'}).contents[0]
     pretty_change = change.replace(',', '.')
 
     # Change comma to dot before returning
@@ -157,7 +162,7 @@ investing_values = (
     ('DAU Johannes Zukünfte', 'sind', 'https://www.investing.com/indices/us-30-futures', index_commodities_filter),
     ('🐘 2000 Zukünfte', 'sind', 'https://www.investing.com/indices/smallcap-2000-futures', index_commodities_filter),
     ('Ⓜ🦡️Zukünfte', 'sind', 'https://www.investing.com/indices/germany-mid-cap-50-futures', index_commodities_filter),
-    ('🇪🇺🌲 Zukünfte', 'sind', 'https://www.investing.com/indices/eu-stocks-50-futures', index_commodities_filter),
+    ('🇪🇺🦯 Zukünfte', 'sind', 'https://www.investing.com/indices/eu-stocks-50-futures', index_commodities_filter),
     ('Der Nikkei', 'ist', 'https://www.investing.com/indices/japan-ni225', index_commodities_filter),
     ('Der Hang Seng', 'ist', 'https://www.investing.com/indices/hang-sen-40', index_commodities_filter),
     ('Der ASX 200', 'ist', 'https://www.investing.com/indices/aus-200', index_commodities_filter),
