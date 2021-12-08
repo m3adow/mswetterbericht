@@ -96,7 +96,7 @@ def co2_change() -> list:
         change = mydiv.find('data', {'class': 'color--cd-positive text-nowrap outer-spacing--xsmall-right'}).contents[0]
     except AttributeError:
         change = mydiv.find('data', {'class': 'color--cd-negative text-nowrap outer-spacing--xsmall-right'}).contents[0]
-    pretty_change = change.replace(',', '.')
+    pretty_change = change.replace(',', '.') + '%'
 
     # Change comma to dot before returning
     return [pretty_price, pretty_change]
