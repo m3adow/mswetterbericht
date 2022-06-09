@@ -195,7 +195,7 @@ def co2_change() -> list:
         print("Got HTTP %s." % r.status_code)
     soup = BeautifulSoup(r.text, 'html.parser')
     mydiv = soup.find('div', {'class': 'flex-layout flex-layout__align-items--baseline ov-flex-layout--column-sm '
-                                       'outer-spacing--xsmall-bottom text-size--xlarge'})
+                                       'text-size--xlarge'})
     price_raw = mydiv.find('data', {'class': 'text-nowrap text-weight--medium outer-spacing--xsmall-right'}).contents[0]
     # Change comma to dot, round to two digits (removing trailing zero) and add Euro sign
     price = round(float(price_raw.replace(',', '.')), 2)
