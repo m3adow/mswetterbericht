@@ -10,7 +10,7 @@ import praw.models
 from mswetterbericht import wetterbericht
 
 user_agent = "User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:103.0) Gecko/20100101 Firefox/103.0"
-subreddit_name = "carbonarastrasse"
+subreddit = "mauerstrassenwetten"
 bot_add_line = "\n\n*^^Dieser ^^Wetterbericht ^^wurde ^^automatisiert ^^erstellt ^^und ^^ist ^^ohne ^^Unterschrift " \
                "^^gültig.*"
 # subreddit_name = "mauerstrassenwetten"
@@ -19,15 +19,16 @@ bot_add_line = "\n\n*^^Dieser ^^Wetterbericht ^^wurde ^^automatisiert ^^erstellt
 def parse_args() -> Namespace:
     parser = ArgumentParser()
     parser.add_argument('--credentials-file', required=True)
+    parser.add_argument('--subreddit', default=subreddit)
     args = parser.parse_args()
 
     return args
 
 
-def find_ddt(reddit: praw.Reddit) -> praw.models.Submission:
+def find_ddt(reddit: praw.Reddit, target_sub) -> praw.models.Submission:
     # Format the search Regex for the Daily Discussion Thread
     ddt_date = datetime.date.today().strftime('%B %d, %Y')
-    msw = reddit.subreddit(subreddit_name)
+    msw = reddit.subreddit(target_sub)
 
     for submission in msw.hot(limit=3):
         print(submission.title)
@@ -38,6 +39,9 @@ def find_ddt(reddit: praw.Reddit) -> praw.models.Submission:
 
         if re.search(ddt_date, submission.title):
             return submission
+    else:
+        print("Could not find Daily Discussion Thread. 💩 Exiting.")
+        exit(1)
 
 
 args = parse_args()
@@ -60,6 +64,5 @@ except (IndexError, FileNotFoundError) as e:
 
 reddit = praw.Reddit(**creds, check_for_updates=False, user_agent=user_agent)
 
-
-ddt = find_ddt(reddit)
+ddt = find_ddt(reddit, target_sub=args.subreddit)
 ddt.reply(body=wetterbericht.wetterbericht() + bot_add_line)

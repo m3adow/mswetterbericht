@@ -5,6 +5,7 @@ import sys
 from dataclasses import dataclass
 from typing import Callable
 from argparse import ArgumentParser, Namespace
+from os.path import exists as path_exists
 
 import requests
 import upsidedown
@@ -299,10 +300,14 @@ def wetterbericht(prose_file: str = 'prose.json') -> str:
 if __name__ == "__main__":
     args = parse_args()
 
-    # Use prose.json by default
+    # Shallowly search for prose.json if not in args
     if args.prose_file:
         prose_file = args.prose_file
-    else:
+    elif path_exists('prose.json'):
         prose_file = 'prose.json'
+    elif path_exists('mswetterbericht/prose.json'):
+        prose_file = 'mswetterbericht/prose.json'
+    else:
+        raise FileNotFoundError("Could not find prose file.")
 
     print(wetterbericht(prose_file=prose_file))
