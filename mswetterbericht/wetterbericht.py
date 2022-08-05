@@ -16,7 +16,7 @@ headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:103.0) Ge
 url_retries = 2
 closed_string = 'geschlossen'
 prose = {
-    'template': 'Guten Morgen zusammen, hier die heutige MSW-Wettervorhersage:\n\n'
+    'template': 'Guten Morgen zusammen, hier die heutige MSWettervorhersage:\n\n'
                 '{prose_lines}\n'
                 '* [Die Wettervorhersage](https://www.wetter.com/deutschland/dachsenhausen/DE0001902.html) für'
                 ' Dachsenhausen sagt einen **{weather_attributes}** Tag voraus.\n\n'
