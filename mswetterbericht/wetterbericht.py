@@ -248,7 +248,7 @@ investing_values = (
     ('Ⓜ🦡️Zukünfte', 'sind', 'https://www.investing.com/indices/germany-mid-cap-50-futures', index_commodities_filter),
     ('🇪🇺🦯 Zukünfte', 'sind', 'https://www.investing.com/indices/eu-stocks-50-futures', index_commodities_filter),
     ('Der ☑🦈', 'ist', 'https://www.investing.com/indices/japan-ni225', index_commodities_filter),
-    ('Der Hang Seng', 'ist', 'https://www.investing.com/indices/hang-sen-40', index_commodities_filter),
+    ('Der  🧗🔥', 'ist', 'https://www.investing.com/indices/hang-sen-40', index_commodities_filter),
     # ASX will be written upsidedown
     ('Der ASX 200', 'ist', 'https://www.investing.com/indices/aus-200', index_commodities_filter, True),
     ('🔥🛢 Zukünfte', 'sind', 'https://www.investing.com/commodities/brent-oil', index_commodities_filter),
@@ -257,7 +257,7 @@ investing_values = (
 )
 
 special_values = (
-    ('Der Stückmünzenkurs', 'ist', 'https://www.coingecko.com/en/coins/bitcoin', bitcoin_change),
+    ('Der 🦯🪙 kurs', 'ist', 'https://www.coingecko.com/en/coins/bitcoin', bitcoin_change),
     ('CO2 Zertifikate', 'sind',
      'https://www.onvista.de/derivate/Index-Zertifikate/158135999-CU3RPS-DE000CU3RPS9', co2_change)
 )
