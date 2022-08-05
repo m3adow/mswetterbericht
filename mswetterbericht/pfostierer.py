@@ -31,7 +31,6 @@ def find_ddt(reddit: praw.Reddit, target_sub) -> praw.models.Submission:
     msw = reddit.subreddit(target_sub)
 
     for submission in msw.hot(limit=3):
-        print(submission.title)
         # Ignore unstickied posts directly in case
         # there's a shitpost with the same date format
         if not submission.stickied:

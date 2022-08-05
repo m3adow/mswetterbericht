@@ -244,7 +244,7 @@ def generate_prose(instruments: list, prose_json: dict, weather_attributes: str)
     return prose['template'].format(prose_lines='\n'.join(prose_lines), weather_attributes=weather_attributes)
 
 
-def wetterbericht(prose_file: str = 'prose.json') -> str:
+def wetterbericht(prose_file: str = None) -> str:
     # Instrument definitions
     investing_values = (
         ('Schatzkisten', 'sind', 'https://www.investing.com/rates-bonds/u.s.-10-year-bond-yield', bond_filter),
@@ -271,6 +271,14 @@ def wetterbericht(prose_file: str = 'prose.json') -> str:
         ('CO2 Zertifikate', 'sind',
          'https://www.onvista.de/derivate/Index-Zertifikate/158135999-CU3RPS-DE000CU3RPS9', co2_change)
     )
+
+    if not prose_file:
+        if path_exists('prose.json'):
+            prose_file = 'prose.json'
+        elif path_exists('mswetterbericht/prose.json'):
+            prose_file = 'mswetterbericht/prose.json'
+        else:
+            raise FileNotFoundError("Could not find prose file.")
 
     with open(prose_file, encoding='utf8') as f:
         prose_json = json.load(f)
@@ -302,12 +310,6 @@ if __name__ == "__main__":
 
     # Shallowly search for prose.json if not in args
     if args.prose_file:
-        prose_file = args.prose_file
-    elif path_exists('prose.json'):
-        prose_file = 'prose.json'
-    elif path_exists('mswetterbericht/prose.json'):
-        prose_file = 'mswetterbericht/prose.json'
+        print(wetterbericht(prose_file=args.prose_file))
     else:
-        raise FileNotFoundError("Could not find prose file.")
-
-    print(wetterbericht(prose_file=prose_file))
+        print(wetterbericht())
