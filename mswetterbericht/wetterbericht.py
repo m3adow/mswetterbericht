@@ -4,6 +4,7 @@ import re
 import sys
 from dataclasses import dataclass
 from typing import Callable
+from argparse import ArgumentParser, Namespace
 
 import requests
 import upsidedown
@@ -133,6 +134,14 @@ class TradingInstrument:
             return random.choice(prose_dict['prefixes']['light']) + color
 
 
+def parse_args() -> Namespace:
+    parser = ArgumentParser()
+    parser.add_argument('--prose-file', default="")
+    args = parser.parse_args()
+
+    return args
+
+
 def bond_filter(soup: BeautifulSoup) -> tuple:
     mydiv = soup.find('div', {'class': 'top bold inlineblock'})
     spans = mydiv.find_all('span')
@@ -237,57 +246,66 @@ def generate_prose(instruments: list, prose_json: dict, weather_attributes: str)
     return prose['template'].format(prose_lines='\n'.join(prose_lines), weather_attributes=weather_attributes)
 
 
-# Instrument definitions
-investing_values = (
-    ('Schatzkisten', 'sind', 'https://www.investing.com/rates-bonds/u.s.-10-year-bond-yield', bond_filter),
-    ('🦡 Zukünfte', 'sind', 'https://www.investing.com/indices/germany-30-futures', index_commodities_filter),
-    ('💦🦡 Zukünfte', 'sind', 'https://www.investing.com/indices/nq-100-futures', index_commodities_filter),
-    ('🕵️ Zukünfte', 'sind', 'https://www.investing.com/indices/us-spx-500-futures', index_commodities_filter),
-    ('DAU Johannes Zukünfte', 'sind', 'https://www.investing.com/indices/us-30-futures', index_commodities_filter),
-    ('🐘 2000 Zukünfte', 'sind', 'https://www.investing.com/indices/smallcap-2000-futures', index_commodities_filter),
-    ('Ⓜ🦡️Zukünfte', 'sind', 'https://www.investing.com/indices/germany-mid-cap-50-futures', index_commodities_filter),
-    ('🇪🇺🦯 Zukünfte', 'sind', 'https://www.investing.com/indices/eu-stocks-50-futures', index_commodities_filter),
-    ('Der ☑🦈', 'ist', 'https://www.investing.com/indices/japan-ni225', index_commodities_filter),
-    ('Der  🧗🔥', 'ist', 'https://www.investing.com/indices/hang-sen-40', index_commodities_filter),
-    # ASX will be written upsidedown
-    ('Der ASX 200', 'ist', 'https://www.investing.com/indices/aus-200', index_commodities_filter, True),
-    ('🔥🛢 Zukünfte', 'sind', 'https://www.investing.com/commodities/brent-oil', index_commodities_filter),
-    ('🥇 Zukünfte', 'sind', 'https://www.investing.com/commodities/gold', index_commodities_filter),
-    ('🌎💨 Zukünfte', 'sind', 'https://www.investing.com/commodities/natural-gas', index_commodities_filter)
-)
+def wetterbericht(prose_file: str = 'prose.json') -> str:
+    # Instrument definitions
+    investing_values = (
+        ('Schatzkisten', 'sind', 'https://www.investing.com/rates-bonds/u.s.-10-year-bond-yield', bond_filter),
+        ('🦡 Zukünfte', 'sind', 'https://www.investing.com/indices/germany-30-futures', index_commodities_filter),
+        ('💦🦡 Zukünfte', 'sind', 'https://www.investing.com/indices/nq-100-futures', index_commodities_filter),
+        ('🕵️ Zukünfte', 'sind', 'https://www.investing.com/indices/us-spx-500-futures', index_commodities_filter),
+        ('DAU Johannes Zukünfte', 'sind', 'https://www.investing.com/indices/us-30-futures', index_commodities_filter),
+        ('🐘 2000 Zukünfte', 'sind', 'https://www.investing.com/indices/smallcap-2000-futures',
+         index_commodities_filter),
+        ('Ⓜ🦡️Zukünfte', 'sind', 'https://www.investing.com/indices/germany-mid-cap-50-futures',
+         index_commodities_filter),
+        ('🇪🇺🦯 Zukünfte', 'sind', 'https://www.investing.com/indices/eu-stocks-50-futures', index_commodities_filter),
+        ('Der ☑🦈', 'ist', 'https://www.investing.com/indices/japan-ni225', index_commodities_filter),
+        ('Der  🧗🔥', 'ist', 'https://www.investing.com/indices/hang-sen-40', index_commodities_filter),
+        # ASX will be written upsidedown
+        ('Der ASX 200', 'ist', 'https://www.investing.com/indices/aus-200', index_commodities_filter, True),
+        ('🔥🛢 Zukünfte', 'sind', 'https://www.investing.com/commodities/brent-oil', index_commodities_filter),
+        ('🥇 Zukünfte', 'sind', 'https://www.investing.com/commodities/gold', index_commodities_filter),
+        ('🌎💨 Zukünfte', 'sind', 'https://www.investing.com/commodities/natural-gas', index_commodities_filter)
+    )
 
-special_values = (
-    ('Der 🦯🪙 kurs', 'ist', 'https://www.coingecko.com/en/coins/bitcoin', bitcoin_change),
-    ('CO2 Zertifikate', 'sind',
-     'https://www.onvista.de/derivate/Index-Zertifikate/158135999-CU3RPS-DE000CU3RPS9', co2_change)
-)
+    special_values = (
+        ('Der 🦯🪙 kurs', 'ist', 'https://www.coingecko.com/en/coins/bitcoin', bitcoin_change),
+        ('CO2 Zertifikate', 'sind',
+         'https://www.onvista.de/derivate/Index-Zertifikate/158135999-CU3RPS-DE000CU3RPS9', co2_change)
+    )
 
-# Use prose.json by default
-if len(sys.argv) >= 2:
-    myfile = sys.argv[1]
-else:
-    myfile = 'prose.json'
+    with open(prose_file, encoding='utf8') as f:
+        prose_json = json.load(f)
 
-with open(myfile, encoding='utf8') as f:
-    prose_json = json.load(f)
+    investing_objects = [TradingInstrument(*instrument) for instrument in investing_values]
+    special_objects = [TradingInstrument(*instrument) for instrument in special_values]
 
-investing_objects = [TradingInstrument(*instrument) for instrument in investing_values]
-special_objects = [TradingInstrument(*instrument) for instrument in special_values]
+    for instrument in investing_objects:
+        # Implement retries, as investing.com acts strange sometimes
+        retry = Retry(total=url_retries, backoff_factor=1, status_forcelist=[502, 503, 504])
+        http_adapter = HTTPAdapter(max_retries=retry)
+        http_session = requests.Session()
+        http_session.mount(instrument.url, http_adapter)
+        r = http_session.get(instrument.url, headers=headers)
+        if r.status_code != 200:
+            print("Failed to get '%s'. Aborting." % instrument.name)
+            exit(1)
+        soup = BeautifulSoup(r.text, 'html.parser')
+        instrument.pct_change, instrument.absolute_value, instrument.is_closed = instrument.filter_function(soup)
 
-for instrument in investing_objects:
-    # Implement retries, as investing.com acts strange sometimes
-    retry = Retry(total=url_retries, backoff_factor=1, status_forcelist=[502, 503, 504])
-    http_adapter = HTTPAdapter(max_retries=retry)
-    http_session = requests.Session()
-    http_session.mount(instrument.url, http_adapter)
-    r = http_session.get(instrument.url, headers=headers)
-    if r.status_code != 200:
-        print("Failed to get '%s'. Aborting." % instrument.name)
-        exit(1)
-    soup = BeautifulSoup(r.text, 'html.parser')
-    instrument.pct_change, instrument.absolute_value, instrument.is_closed = instrument.filter_function(soup)
+    for instrument in special_objects:
+        instrument.absolute_value, instrument.pct_change = instrument.filter_function()
 
-for instrument in special_objects:
-    instrument.absolute_value, instrument.pct_change = instrument.filter_function()
+    return generate_prose(investing_objects + special_objects, prose_json, weather_forecast())
 
-print(generate_prose(investing_objects + special_objects, prose_json, weather_forecast()))
+
+if __name__ == "__main__":
+    args = parse_args()
+
+    # Use prose.json by default
+    if args.prose_file:
+        prose_file = args.prose_file
+    else:
+        prose_file = 'prose.json'
+
+    print(wetterbericht(prose_file=prose_file))
