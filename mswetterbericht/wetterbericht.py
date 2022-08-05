@@ -11,14 +11,14 @@ from bs4 import BeautifulSoup
 from requests.adapters import HTTPAdapter, Retry
 
 # Globals
-headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Firefox/91.0'}
+headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:103.0) Gecko/20100101 Firefox/103.0'}
 url_retries = 2
 closed_string = 'geschlossen'
 prose = {
     'template': 'Guten Morgen zusammen, die heutige Wettervorhersage für alle, <<hier könnte Ihr Spruch stehen>>:\n\n'
                 '{prose_lines}\n'
                 '* [Die Wettervorhersage](https://www.wetter.com/deutschland/dachsenhausen/DE0001902.html) für'
-                ' Dachsenhausen sagt einen **DASMUSSMANUELLEINGETRAGENWERDEN** Tag voraus.\n\n'
+                ' Dachsenhausen sagt einen **{weather_attributes}** Tag voraus.\n\n'
                 'Und natürlich die Miesmuschel: !mm Wird heute ein grüner Tag?\n\n',
     'investing': '* [{name}]({url}) {verb} **{word_change}**, mit **{pct_change}** (Kurs: {absolute_value}).',
     'closed': '* [{name}]({url}) {verb} bei Marktschluss **{word_change}** gewesen, mit '
@@ -213,12 +213,28 @@ def co2_change() -> list:
     return [pretty_price, pretty_change]
 
 
-def generate_prose(instruments: list, prose_json: dict) -> str:
+def weather_forecast() -> str:
+    url = 'https://www.wetter.com/deutschland/dachsenhausen/DE0001902.html'
+
+    r = requests.get(url, headers=headers)
+    if r.status_code != 200:
+        print("Got HTTP %s." % r.status_code)
+    soup = BeautifulSoup(r.text, 'html.parser')
+    # Not all TDs have the same class, therefore use 'select'
+    mydivs = soup.select('td.text--center.delta.portable-pb')
+
+    # Only use the two middle rows for forecast, use set for uniqueness
+    pretty_forecast_attributes = {div_content.text.strip() + 'en' for div_content in mydivs[1:3]}
+
+    return " und ".join(pretty_forecast_attributes)
+
+
+def generate_prose(instruments: list, prose_json: dict, weather_attributes: str) -> str:
     prose_lines = []
     for instrument in instruments:
         instrument.generate_prose_line(prose_json)
         prose_lines.append(instrument.prose_line)
-    return prose['template'].format(prose_lines='\n'.join(prose_lines))
+    return prose['template'].format(prose_lines='\n'.join(prose_lines), weather_attributes=weather_attributes)
 
 
 # Instrument definitions
@@ -274,4 +290,4 @@ for instrument in investing_objects:
 for instrument in special_objects:
     instrument.absolute_value, instrument.pct_change = instrument.filter_function()
 
-print(generate_prose(investing_objects + special_objects, prose_json))
+print(generate_prose(investing_objects + special_objects, prose_json, weather_forecast()))
