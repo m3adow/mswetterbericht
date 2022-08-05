@@ -16,7 +16,7 @@ headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:103.0) Ge
 url_retries = 2
 closed_string = 'geschlossen'
 prose = {
-    'template': 'Guten Morgen zusammen, die heutige Wettervorhersage für alle, <<hier könnte Ihr Spruch stehen>>:\n\n'
+    'template': 'Guten Morgen zusammen, hier die heutige MSW-Wettervorhersage:\n\n'
                 '{prose_lines}\n'
                 '* [Die Wettervorhersage](https://www.wetter.com/deutschland/dachsenhausen/DE0001902.html) für'
                 ' Dachsenhausen sagt einen **{weather_attributes}** Tag voraus.\n\n'
@@ -42,11 +42,8 @@ prose = {
     }
 }
 
-# Seed RNG
-random.seed()
 
-
-# Todo: Create a prototype class which is then used for each instrument type
+# Todo: Create a prototype class which is then used for each instrument type (IMPROVEMENT)
 @dataclass
 class TradingInstrument:
     """Class for all Trading Instruments used in the forecast."""
