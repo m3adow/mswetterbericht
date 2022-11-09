@@ -195,28 +195,12 @@ def bitcoin_change() -> list:
 
 
 def co2_change() -> list:
-    url = 'https://www.onvista.de/derivate/Index-Zertifikate/158135999-CU3RPS-DE000CU3RPS9'
-
+    url = 'https://www.consorsbank.de/web-financialinfo-service/api/marketdata/levproducts?id=_258849348&field=PriceV2&rtExchangeCode=@DE'
     r = requests.get(url, headers=headers)
     if r.status_code != 200:
         print("Got HTTP %s." % r.status_code)
-    soup = BeautifulSoup(r.text, 'html.parser')
-    mydiv = soup.find('div', {'class': 'flex-layout flex-layout__align-items--baseline ov-flex-layout--column-sm '
-                                       'text-size--xlarge'})
-    price_raw = mydiv.find('data', {'class': 'text-nowrap text-weight--medium outer-spacing--xsmall-right'}).contents[0]
-    # Change comma to dot, round to two digits (removing trailing zero) and add Euro sign
-    price = round(float(price_raw.replace(',', '.')), 2)
-    pretty_price = str(price) + 'EUR'
-
-    # Differentiate between positive and negative change
-    # Maybe change to conditional?
-    try:
-        change = mydiv.find('data', {'class': 'color--cd-positive text-nowrap outer-spacing--xsmall-right'}).contents[0]
-    except AttributeError:
-        change = mydiv.find('data', {'class': 'color--cd-negative text-nowrap outer-spacing--xsmall-right'}).contents[0]
-    pretty_change = change.replace(',', '.') + '%'
-
-    # Change comma to dot before returning
+    pretty_price = f"{r.json()[0]['PriceV2']['PRICE']}€"
+    pretty_change = f"{round(r.json()[0]['PriceV2']['PERFORMANCE_PCT'], 2)}%"
     return [pretty_price, pretty_change]
 
 
