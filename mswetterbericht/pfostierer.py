@@ -1,33 +1,35 @@
 import json
-import sys
 import datetime
 import re
 
 from argparse import ArgumentParser, Namespace
 
-import praw
 import praw.models
-from mswetterbericht import wetterbericht
+from wetterbericht import forecast
 
 user_agent = "User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:103.0) Gecko/20100101 Firefox/103.0"
-subreddit = "mauerstrassenwetten"
-bot_add_line = "\n\n*^^Dieser ^^Wetterbericht ^^wurde ^^automatisiert ^^erstellt ^^und ^^ist ^^ohne ^^Unterschrift " \
-               "^^gültig.*"
-# subreddit_name = "mauerstrassenwetten"
+# subreddit = "mauerstrassenwetten"
+bot_add_line = (
+    "\n\n*^^Dieser ^^Wetterbericht [^^wurde ^^automatisiert ^^erstellt]"
+    "(https://github.com/m3adow/mswetterbericht) ^^und ^^ist ^^ohne ^^Unterschrift ^^gültig.*"
+)
+subreddit = "carbonarastrasse"
 
 
 def parse_args() -> Namespace:
     parser = ArgumentParser()
-    parser.add_argument('--credentials-file', required=True)
-    parser.add_argument('--subreddit', default=subreddit)
+    parser.add_argument("--prose-file", required=True)
+    parser.add_argument("--instruments-file", required=True)
+    parser.add_argument("--credentials-file", required=True)
+    parser.add_argument("--subreddit", default=subreddit)
     args = parser.parse_args()
 
     return args
 
 
-def find_ddt(reddit: praw.Reddit, target_sub) -> praw.models.Submission:
+def find_ddt(reddit: praw.Reddit, target_sub: str) -> praw.models.Submission:
     # Format the search Regex for the Daily Discussion Thread
-    ddt_date = datetime.date.today().strftime('%B %d, %Y')
+    ddt_date = datetime.date.today().strftime("%B %d, %Y")
     msw = reddit.subreddit(target_sub)
 
     for submission in msw.hot(limit=3):
@@ -47,6 +49,7 @@ args = parse_args()
 
 try:
     with open(args.credentials_file) as f:
+        # TODO: Maybe implement JSONschma
         """
         Required JSON structure:
         {
@@ -64,4 +67,7 @@ except (IndexError, FileNotFoundError) as e:
 reddit = praw.Reddit(**creds, check_for_updates=False, user_agent=user_agent)
 
 ddt = find_ddt(reddit, target_sub=args.subreddit)
-ddt.reply(body=wetterbericht.wetterbericht() + bot_add_line)
+ddt.reply(
+    body=forecast(instruments_file=args.instruments_file, prose_file=args.prose_file)
+    + bot_add_line
+)

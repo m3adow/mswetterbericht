@@ -1,0 +1,82 @@
+---
+# Expects Markdown formatted Python Format Strings
+the_talk: |-
+  Guten Morgen zusammen, hier die heutige MSWettervorhersage:
+
+  {prose_lines}
+
+  {weather_line}
+
+  Und natürlich die Miesmuschel: !mm Wird heute ein grüner Tag?',
+
+# Properties and prefixes for instruments ordered by instrument type
+# Note that sometimes a trailing space is needed as the prefixes are added directly in front of a word
+properties:
+  boring: &boring-properties
+    green:
+      - grün
+    red:
+      - rot
+    unchanged:
+      - unverändert
+  exciting:
+    green:
+      - explodiert
+      - geklettert
+      - gestiegen
+      - gewachsen
+    red:
+      - gefallen
+      - geschrumpelt
+      - geschrumpft
+      - gesunken
+      - getunkt
+      - implodiert
+      - verkümmert
+    unchanged:
+      - unverändert
+  upsidedown: *boring-properties
+
+prefixes:
+  boring: &boring-prefixes
+    light:
+      - blass
+      - "blässlich "
+      - "einen Hauch von "
+      - "ein My "
+      - "geringfügig "
+      - "leicht "
+      - "minimal "
+      - zart
+    heavy:
+      - dunkel
+      - "fett "
+      - "deftig "
+      - "dick "
+      - knall
+      - "kräftig "
+      - "mächtig "
+      - neon
+      - "ordentlich "
+      - "saftig "
+      - tief
+  exciting:
+    light:
+      - "ein bisschen "
+      - "ein My "
+      - "etwas "
+      - "geringfügig "
+      - "leicht "
+      - "minimal "
+      - "zärtlich "
+    heavy:
+      - "(besorgnis)erregend "
+      - "deutlich "
+      - "dramatisch "
+      - "eklatant "
+      - "fett "
+      - "massiv "
+      - "mächtig "
+      - "ordentlich "
+      - "stark "
+  upsidedown: *boring-prefixes

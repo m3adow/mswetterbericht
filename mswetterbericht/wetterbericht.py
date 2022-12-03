@@ -1,299 +1,240 @@
-import json
-import random
-import re
-import sys
-from dataclasses import dataclass
-from typing import Callable
 from argparse import ArgumentParser, Namespace
-from os.path import exists as path_exists
+from ruamel.yaml import YAML
+import attr
+import logging
+from importlib import import_module
+from random import choice as random_choice
 
-import requests
-import upsidedown
-from bs4 import BeautifulSoup
-from requests.adapters import HTTPAdapter, Retry
+# Configure logger
+logging.basicConfig(
+    format="%(asctime)s %(levelname)-8s %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
+)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
-# Globals
-headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:103.0) Gecko/20100101 Firefox/103.0'}
-url_retries = 2
-closed_string = 'geschlossen'
-prose = {
-    'template': 'Guten Morgen zusammen, hier die heutige MSWettervorhersage:\n\n'
-                '{prose_lines}\n'
-                '* [Die Wettervorhersage](https://www.wetter.com/deutschland/dachsenhausen/DE0001902.html) für'
-                ' Dachsenhausen sagt einen **{weather_attributes}** Tag voraus.\n\n'
-                'Und natürlich die Miesmuschel: !mm Wird heute ein grüner Tag?\n\n',
-    'investing': '* [{name}]({url}) {verb} **{word_change}**, mit **{pct_change}** (Kurs: {absolute_value}).',
-    'closed': '* [{name}]({url}) {verb} bei Marktschluss **{word_change}** gewesen, mit '
-              '**{pct_change}** (Kurs: {absolute_value}).',
-    'error': '* [{name}]({url}) {verb} **unverständlich/fehlerhaft**: **{pct_change}** (Kurs: {absolute_value}).',
-    'special': '* [{name}]({url}) {verb} **{word_change}**. Der Preis liegt bei **{absolute_value}** was einer '
-               'Veränderung von **{pct_change}** zum Vortag entspricht.',
-    # Tuple of strings and a bool to signal upsidedown writing, note the different order, as upsidedown writing
-    # is read from right to left while the formatting strings have to be ordered from left to right
-    'upsidedown': {
-        'investing': [
-            ('* ', False), (' {verb} **{word_change}**, mit **{pct_change}** (Kurs: {absolute_value}).', True),
-            ('[', False), ('{name}', True), (']({url})', False)
-        ],
-        'closed': [('* ', False), (
-            ' {verb} bei Marktschluss **{word_change}** gewesen, mit **{pct_change}** (Kurs: {absolute_value}).', True),
-                   ('[', False), ('{name}', True), (']({url})', False),
-
-                   ]
-    }
-}
+# Configure ruamel.yaml parser
+yaml = YAML(typ="safe")
 
 
-# Todo: Create a prototype class which is then used for each instrument type (IMPROVEMENT)
-@dataclass
-class TradingInstrument:
-    """Class for all Trading Instruments used in the forecast."""
-    name: str
-    verb: str
-    url: str
-    filter_function: Callable
-    upsidedown: bool = False
-    is_special: bool = False
-    # These will not be filled at declaration time
-    pct_change: str = None
-    absolute_value: str = None
-    is_closed: bool = False
-    prose_line: str = 'REPLACEMEDADDY'
+# Converter function for object
+def strip_line(line: str) -> str:
+    return line.strip()
 
-    def generate_prose_line(self, prose_json: dict):
-        self.prose_line = ''
-        # Pasta pasta?
-        if self.is_special:
-            # Special instruments do not have closed lines
-            prose_dict = prose_json['special']
-            prose_line_key = 'special'
-        else:
-            prose_dict = prose_json['futures']
-            prose_line_key = 'investing'
-            if self.is_closed:
-                prose_line_key = 'closed'
 
-        # Investing.com returns are sometimes faulty
+@attr.define(kw_only=True)
+class ProseGenerator:
+    """Helper class for formatting stuff"""
+
+    properties: dict
+    prefixes: dict
+    the_talk: str
+
+    @classmethod
+    def from_prose_file(cls, prose_file: str):
+        """Generate a class directly from a YAML formatted prose file
+
+        @param prose_file: YAML file with prose words
+        @return: ProseGenerator object
+        """
+        with open(prose_file) as f:
+            prose_dict = yaml.load(f)
+        the_talk = prose_dict["the_talk"]
+
+        return cls(
+            properties=prose_dict["properties"],
+            prefixes=prose_dict["prefixes"],
+            the_talk=the_talk,
+        )
+
+    def choose_change_word(self, pct_change: float, instrument_type: str) -> str:
+        """Choose property and prefix depending on 'pct_change'
+
+        @param pct_change: Percentage of change for the associated Instrument
+        @param instrument_type: type of the associated instrument
+        @return: Returns a prosaic description of the numerical percentage change
+        """
         try:
-            if self.upsidedown:
-                for mystring, needs_transformation in prose['upsidedown'][prose_line_key]:
-                    addstring = mystring.format(name=self.name, url=self.url, verb=self.verb,
-                                                word_change=self.evaluate_change(prose_dict),
-                                                absolute_value=self.absolute_value,
-                                                pct_change=self.pct_change
-                                                )
-                    if needs_transformation:
-                        self.prose_line += upsidedown.transform(addstring)
-                    else:
-                        self.prose_line += addstring
+            if pct_change > 0:
+                color = random_choice(self.properties[instrument_type]["green"])
+            elif pct_change < 0:
+                color = random_choice(self.properties[instrument_type]["red"])
             else:
-                self.prose_line = prose[prose_line_key].format(name=self.name, url=self.url, verb=self.verb,
-                                                               word_change=self.evaluate_change(prose_dict),
-                                                               absolute_value=self.absolute_value,
-                                                               pct_change=self.pct_change
-                                                               )
-        except ValueError:
-            self.prose_line = prose['error'].format(
-                name=self.name, url=self.url, verb=self.verb, pct_change=self.pct_change,
-                absolute_value=self.absolute_value
-            )
+                return random_choice(self.properties[instrument_type]["unchanged"])
 
-    def generate_normal_line(self, prose_line: str, prose_json: dict) -> None:
-        # investing.com returns do have some strange issues sometimes
-        try:
-            self.prose_line = prose_line.format(name=self.name, url=self.url, verb=self.verb,
-                                                word_change=self.evaluate_change(prose_json),
-                                                absolute_value=self.absolute_value, pct_change=self.pct_change
-                                                )
-        except ValueError:
-            self.prose_line = prose['error'].format(
-                name=self.name, url=self.url, verb=self.verb, pct_change=self.pct_change,
-                absolute_value=self.absolute_value
+            if abs(pct_change) >= 1.0:
+                return random_choice(self.prefixes[instrument_type]["heavy"]) + color
+            elif abs(pct_change) > 0.1:
+                return color
+            else:
+                return random_choice(self.prefixes[instrument_type]["light"]) + color
+        except KeyError as e:
+            logger.critical(
+                f"Could not find prose for instrument type {instrument_type}."
             )
+            raise e
 
-    def generate_upsidedown_line(self, prose_line: str, prose_json: dict) -> str:
+    def talk_the_talk(self, prose_lines: list, weather_line: str) -> str:
+        return self.the_talk.format(
+            prose_lines="\n".join(prose_lines), weather_line=weather_line
+        )
+
+
+@attr.define(kw_only=True)
+class InstrumentLine:
+    """Class for instrument lines, used for formatting"""
+
+    line: str = attr.field(converter=strip_line)
+    plural: bool
+
+    @property
+    def verb(self) -> str:
+        """
+        @return: Return either plural or singular form of the verb "sein"
+        """
+        if self.plural:
+            return "sind"
+        return "ist"
+
+    def generate_line(self, change_word: str, **kwargs) -> str:
+        """
+        @param change_word: Prose word for the change
+        @param kwargs: Remaining required arguments for the InstrumentLine
+        @return: A properly filled and formatted instrument line
+        """
+        return self.line.format(verb=self.verb, change_word=change_word, **kwargs)
+
+
+@attr.define
+class InstrumentValues:
+    pct_change: float = attr.field(converter=float)
+    absolute_value: float = attr.field(converter=float)
+
+    @property
+    def pretty_pct_change(self) -> str:
+        """Prettify pct_change with two decimals, percent and plus sign if required"""
+        if self.pct_change > 0:
+            return f"+{self.pct_change:.2f}%"
+        return f"{self.pct_change:.2f}%"
+
+    @property
+    def pretty_absolute_value(self) -> str:
+        """Prettify absolute_value with comma as thousands separator"""
+        return "{:,}".format(self.absolute_value)
+
+
+@attr.define(kw_only=True)
+class Instrument:
+    """Prototype Class for all trading instruments in the forecast"""
+
+    description: str
+    url: str
+    # Instrument type
+    type: str
+    # Priority for ordering of prose lines, the lower the number, the earlier it will be added
+    priority: int = attr.field(converter=int)
+    # Values of the instrument
+    values: InstrumentValues
+    # InstrumentLine object filled with the correct attributes for this Instrument
+    line: InstrumentLine
+
+    @classmethod
+    def from_instrument_data(cls, instrument_data):
+        """The intended way to create this class for child classes, has to create its own InstrumentLine object"""
         pass
 
-    def evaluate_change(self, prose_dict: dict) -> str:
-        change = float(self.pct_change.rstrip('%'))
+    @staticmethod
+    def create_values(pct_change: float, absolute_value: float) -> InstrumentValues:
+        """Create an InstrumentValues object
 
-        if change > 0:
-            color = random.choice(prose_dict['green'])
-        elif change < 0:
-            color = random.choice(prose_dict['red'])
-        else:
-            return random.choice(prose_dict['unchanged'])
+        Only required to be easily callable or overridable from modules"""
+        return InstrumentValues(pct_change=pct_change, absolute_value=absolute_value)
 
-        if abs(change) >= 1.0:
-            return random.choice(prose_dict['prefixes']['heavy']) + color
-        elif abs(change) > 0.1:
-            return color
-        else:
-            return random.choice(prose_dict['prefixes']['light']) + color
+    @staticmethod
+    def create_line(line: str, plural: bool) -> InstrumentLine:
+        """Create an InstrumentLine object
+
+        Only required to be easily callable or overridable from modules"""
+        return InstrumentLine(line=line, plural=plural)
+
+    def generate_prose_line(self, prose_generator: ProseGenerator) -> str:
+        """Generate a nicely worded and formatted line of the instruments forecast"""
+        change_word = prose_generator.choose_change_word(
+            self.values.pct_change, self.type
+        )
+        return self.line.generate_line(
+            change_word=change_word,
+            description=self.description,
+            url=self.url,
+            pct_change=self.values.pretty_pct_change,
+            absolute_value=self.values.pretty_absolute_value,
+        )
 
 
 def parse_args() -> Namespace:
     parser = ArgumentParser()
-    parser.add_argument('--prose-file', default="")
-    args = parser.parse_args()
-
-    return args
-
-
-def bond_filter(soup: BeautifulSoup) -> tuple:
-    mydiv = soup.find('div', {'class': 'top bold inlineblock'})
-    spans = mydiv.find_all('span')
-    pct_change = spans[-1].contents[0]  # Percentage change
-    absolute_value = spans[0].contents[0]
-    # Has to return a boolean as third param due to compatibility with other filters
-    return pct_change, absolute_value, False
+    parser.add_argument("--prose-file", required=True)
+    parser.add_argument("--instruments-file", required=True)
+    return parser.parse_args()
 
 
-def index_commodities_filter(soup: BeautifulSoup) -> tuple:
-    is_closed = False
-    pct_span = soup.find('span', {'data-test': 'instrument-price-change-percent'})
-    # Differentiate between negative and positive values due to differing formatting
-    if pct_span.contents[2] == '+':
-        # noinspection PyTypeChecker
-        pct_change = '+' + pct_span.contents[4] + '%'
-    else:
-        pct_change = pct_span.contents[2] + '%'
+def create_instruments(instruments_data: dict) -> list:
+    """Create ProviderInstrument objects by dynamically importing the provider module (key of instruments_data)"""
+    defaults = instruments_data.get("defaults", {})
+    instruments = []
+    for data_provider, instruments_list in instruments_data["instruments"].items():
+        try:
+            mod = import_module(f"mswetterbericht.data_providers.{data_provider}")
+            provider_instrument = getattr(mod, "ProviderInstrument")
+            for instrument in instruments_list:
+                # Add defaults if keys don't exist
+                complete_instrument = defaults.copy()
+                complete_instrument.update(instrument)
 
-    absolute_value = soup.find('span', {'data-test': 'instrument-price-last'}).contents[0]
+                # Putting the creation here instead of in the modules enables internal changes without needing to change
+                # each module
+                complete_instrument["line"] = provider_instrument.create_line(
+                    plural=complete_instrument.pop("plural"),
+                    line=instruments_data["lines"]["instruments"][
+                        complete_instrument["type"]
+                    ],
+                )
 
-    # Check if exchange is closed
-    overdiv = soup.find('div', {'data-test': 'instrument-header-details'})
-    myreg = re.compile(r'.*instrument-metadata_text__.*')
-    metadata_divs = overdiv.find_all('span', {'class': myreg})
-    if metadata_divs[1].contents[0] == 'Closed':
-        is_closed = True
-    return pct_change, absolute_value, is_closed
+                instruments.append(
+                    provider_instrument.from_instrument_data(complete_instrument)
+                )
+        except (ModuleNotFoundError, AttributeError) as e:
+            logger.error(
+                f"Skipping instruments of Data Provider '{data_provider}. Error was: '{e}'"
+            )
+            continue
+
+    return instruments
 
 
-def bitcoin_change() -> list:
-    coingecko_api_endpoint = 'https://api.coingecko.com/api/v3'
+def create_weather_line(prose_line: str) -> str:
+    """Get weather forecast and fill prose_line with it"""
+    # Weather is hard coded for now
+    from mswetterbericht.weather import weather_com
 
-    coin_data_path = '/coins/'
-    coin = 'bitcoin'
-    currency = 'usd'
-    params = {'tickers': False, 'market_data': True, 'community_data': False, 'developer_data': False,
-              'sparkline': False}
-    data = requests.get(
-        coingecko_api_endpoint + coin_data_path + coin, params=params
+    forecast, url = weather_com.create_weather_forecast()
+    return prose_line.format(url=url, forecast=forecast)
+
+
+def forecast(instruments_file: str, prose_file: str):
+    goethe = ProseGenerator.from_prose_file(prose_file)
+    with open(instruments_file) as f:
+        instruments_file_content = yaml.load(f)
+    # Create instruments and sort by instrument priority
+    instruments = sorted(
+        create_instruments(instruments_file_content), key=lambda inst: inst.priority
     )
-    pct_change = str(round(data.json()['market_data']['price_change_percentage_24h'], 2))
+    weather_template = instruments_file_content["lines"]["weather"]
 
-    # Coingecko does not prefix a '+'
-    if float(pct_change) > 0:
-        pct_change = '+' + pct_change
-    price = data.json()['market_data']['current_price'][currency]
-    price_data = [
-        "${:,}".format(price),  # prettifies number with comma and dollar symbol
-        pct_change + '%'
-    ]
-    return list(price_data)
-
-
-def co2_change() -> list:
-    url = 'https://www.consorsbank.de/web-financialinfo-service/api/marketdata/levproducts?id=_258849348&field=PriceV2&rtExchangeCode=@DE'
-    r = requests.get(url, headers=headers)
-    if r.status_code != 200:
-        print("Got HTTP %s." % r.status_code)
-    pretty_price = f"{r.json()[0]['PriceV2']['PRICE']}€"
-    pretty_change = f"{round(r.json()[0]['PriceV2']['PERFORMANCE_PCT'], 2)}%"
-    return [pretty_price, pretty_change]
-
-
-def weather_forecast() -> str:
-    url = 'https://www.wetter.com/deutschland/dachsenhausen/DE0001902.html'
-
-    r = requests.get(url, headers=headers)
-    if r.status_code != 200:
-        print("Got HTTP %s." % r.status_code)
-    soup = BeautifulSoup(r.text, 'html.parser')
-    # Not all TDs have the same class, therefore use 'select'
-    mydivs = soup.select('td.text--center.delta.portable-pb')
-
-    # Only use the two middle rows for forecast, use set for uniqueness
-    pretty_forecast_attributes = {div_content.text.strip() + 'en' for div_content in mydivs[1:3]}
-
-    return " und ".join(pretty_forecast_attributes)
-
-
-def generate_prose(instruments: list, prose_json: dict, weather_attributes: str) -> str:
-    prose_lines = []
-    for instrument in instruments:
-        instrument.generate_prose_line(prose_json)
-        prose_lines.append(instrument.prose_line)
-    return prose['template'].format(prose_lines='\n'.join(prose_lines), weather_attributes=weather_attributes)
-
-
-def wetterbericht(prose_file: str = None) -> str:
-    # Instrument definitions
-    investing_values = (
-        ('Schatzkisten', 'sind', 'https://www.investing.com/rates-bonds/u.s.-10-year-bond-yield', bond_filter),
-        ('🦡 Zukünfte', 'sind', 'https://www.investing.com/indices/germany-30-futures', index_commodities_filter),
-        ('💦🦡 Zukünfte', 'sind', 'https://www.investing.com/indices/nq-100-futures', index_commodities_filter),
-        ('🕵️ Zukünfte', 'sind', 'https://www.investing.com/indices/us-spx-500-futures', index_commodities_filter),
-        ('DAU Johannes Zukünfte', 'sind', 'https://www.investing.com/indices/us-30-futures', index_commodities_filter),
-        ('🐘 2000 Zukünfte', 'sind', 'https://www.investing.com/indices/smallcap-2000-futures',
-         index_commodities_filter),
-        ('Ⓜ🦡️Zukünfte', 'sind', 'https://www.investing.com/indices/germany-mid-cap-50-futures',
-         index_commodities_filter),
-        ('🇪🇺🦯 Zukünfte', 'sind', 'https://www.investing.com/indices/eu-stocks-50-futures', index_commodities_filter),
-        ('Der ☑🦈', 'ist', 'https://www.investing.com/indices/japan-ni225', index_commodities_filter),
-        ('Der  🧗🔥', 'ist', 'https://www.investing.com/indices/hang-sen-40', index_commodities_filter),
-        # ASX will be written upsidedown
-        ('Der ASX 200', 'ist', 'https://www.investing.com/indices/aus-200', index_commodities_filter, True),
-        ('🔥🛢 Zukünfte', 'sind', 'https://www.investing.com/commodities/brent-oil', index_commodities_filter),
-        ('🥇 Zukünfte', 'sind', 'https://www.investing.com/commodities/gold', index_commodities_filter),
-        ('🌎💨 Zukünfte', 'sind', 'https://www.investing.com/commodities/natural-gas', index_commodities_filter)
-    )
-
-    special_values = (
-        ('Der 🦯🪙 kurs', 'ist', 'https://www.coingecko.com/en/coins/bitcoin', bitcoin_change),
-        ('CO2 Zertifikate', 'sind',
-         'https://www.onvista.de/derivate/Index-Zertifikate/158135999-CU3RPS-DE000CU3RPS9', co2_change)
-    )
-
-    if not prose_file:
-        if path_exists('prose.json'):
-            prose_file = 'prose.json'
-        elif path_exists('mswetterbericht/prose.json'):
-            prose_file = 'mswetterbericht/prose.json'
-        else:
-            raise FileNotFoundError("Could not find prose file.")
-
-    with open(prose_file, encoding='utf8') as f:
-        prose_json = json.load(f)
-
-    investing_objects = [TradingInstrument(*instrument) for instrument in investing_values]
-    special_objects = [TradingInstrument(*instrument) for instrument in special_values]
-
-    for instrument in investing_objects:
-        # Implement retries, as investing.com acts strange sometimes
-        retry = Retry(total=url_retries, backoff_factor=1, status_forcelist=[502, 503, 504])
-        http_adapter = HTTPAdapter(max_retries=retry)
-        http_session = requests.Session()
-        http_session.mount(instrument.url, http_adapter)
-        r = http_session.get(instrument.url, headers=headers)
-        if r.status_code != 200:
-            print("Failed to get '%s'. Aborting." % instrument.name)
-            exit(1)
-        soup = BeautifulSoup(r.text, 'html.parser')
-        instrument.pct_change, instrument.absolute_value, instrument.is_closed = instrument.filter_function(soup)
-
-    for instrument in special_objects:
-        instrument.absolute_value, instrument.pct_change = instrument.filter_function()
-
-    return generate_prose(investing_objects + special_objects, prose_json, weather_forecast())
+    prose_lines = [instrument.generate_prose_line(goethe) for instrument in instruments]
+    weather_line = create_weather_line(weather_template)
+    return goethe.talk_the_talk(prose_lines, weather_line)
 
 
 if __name__ == "__main__":
     args = parse_args()
-
-    # Shallowly search for prose.json if not in args
-    if args.prose_file:
-        print(wetterbericht(prose_file=args.prose_file))
-    else:
-        print(wetterbericht())
+    print(forecast(instruments_file=args.instruments_file, prose_file=args.prose_file))

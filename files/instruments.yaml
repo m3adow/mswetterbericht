@@ -1,0 +1,93 @@
+---
+# Defaults which will be taken when the instrument doesn't have that attribute filled individually
+defaults:
+  plural: true
+  priority: 50
+  type: boring
+
+# Lines to use for different cases and for each instrument; expects a Markdown formatted F-String
+lines:
+  # Used when the instrument is not currently traded (still undecided if I'll re-implement that)
+  #closed: '* [{description}]({url}) {verb} bei Marktschluss **{change_word}** gewesen, mit **{pct_change}** (Kurs: {absolute_value}).'
+  # Special key; Used when encountering an error during retrieval of values; Not implemented yet
+  # error: '* [{name}]({url}) {verb} **unverständlich/fehlerhaft**.'
+  instruments:
+    boring: >-
+      * [{description}]({url}) {verb} **{change_word}**, mit **{pct_change}** (Kurs: {absolute_value}).
+    exciting: >-
+      * [{description}]({url}) {verb} **{change_word}**. Der Preis liegt bei **{absolute_value}** was einer Veränderung
+      von **{pct_change}** zum Vortag entspricht.
+    # The Upsidedown type has to use a list to keep Markdown formatting while upsidedown-ing the rest of the text
+    # Every second item will be transformed
+    upsidedown:
+      - "* "
+      - "{verb} **{change_word}**, mit **{pct_change}** (Kurs: {absolute_value})."
+      # This leading space is important for formatting
+      - " ["
+      - "{description}"
+      - "]({url})"
+  # Weather is a special type for now
+  weather: "* [Das Wetter in Dachsenhausen]({url}) soll heute **{forecast}** werden."
+
+instruments:
+  yahoo_finance:
+    - description: Schatzkistenerträge
+      symbol: ^TNX
+      url: https://finance.yahoo.com/quote/%5ETNX/
+      priority: 40
+    - description: 💦🦡 Zukünfte
+      symbol: NQ=F
+      url: https://finance.yahoo.com/quote/NQ%3DF?p=NQ%3DF
+    - description: 🕵️ Zukünfte
+      symbol: ES=F
+      url: https://finance.yahoo.com/quote/ES%3DF?p=ES%3DF
+    - description: 🐘 2000 Zukünfte
+      symbol: RTY=F
+      url: https://finance.yahoo.com/quote/RTY%3DF?p=RTY%3DF
+    - description: DAU Johannes Zukünfte
+      symbol: RTY=F
+      url: https://finance.yahoo.com/quote/YM%3DF?p=YM%3DF
+
+  yahoo_finance_dollar:
+    - description: Der 🦯🪙 kurs
+      symbol: BTC-USD
+      url: https://finance.yahoo.com/quote/BTC-USD?p=BTC-USD&.tsrc=fin-srch
+      plural: false
+      priority: 80
+      type: exciting
+    - description: 🔥🛢 Zukünfte
+      symbol: BZ=F
+      url: https://finance.yahoo.com/quote/BZ%3DF?p=BZ%3DF
+      priority: 60
+    - description: 🥇 Zukünfte
+      symbol: GC=F
+      url: https://finance.yahoo.com/quote/GC%3DF?p=GC%3DF
+      priority: 60
+    - description: 🌎💨 Zukünfte
+      symbol: NG=F
+      url: https://finance.yahoo.com/quote/NG%3DF?p=NG%3DF
+      priority: 60
+
+  investing_com:
+    - description: 🦡 Zukünfte
+      url: https://www.investing.com/indices/germany-30-futures
+    - description: Ⓜ🦡️ Zukünfte
+      url: https://www.investing.com/indices/germany-mid-cap-50-futures
+    - description: 🇪🇺🦯 Zukünfte
+      url: https://www.investing.com/indices/eu-stocks-50-futures
+    - description: 🧗🔥 Zukünfte
+      url: https://www.investing.com/indices/hong-kong-40-futures
+    - description: ☑🦈 Zukünfte
+      url: https://www.investing.com/indices/japan-225-futures
+
+  investing_com_upsidedown:
+    - description: Der ASX 200
+      url: https://www.investing.com/indices/aus-200
+      plural: false
+      type: upsidedown
+
+  onvista:
+    - description: CO2 Zertifikate
+      url: https://www.onvista.de/derivate/Index-Zertifikate/158135999-CU3RPS-DE000CU3RPS9
+      priority: 70
+      type: exciting
