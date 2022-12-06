@@ -8,12 +8,10 @@ import praw.models
 from wetterbericht import forecast
 
 user_agent = "User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:103.0) Gecko/20100101 Firefox/103.0"
-# subreddit = "mauerstrassenwetten"
 bot_add_line = (
     "\n\n*^^Dieser ^^Wetterbericht [^^wurde ^^automatisiert ^^erstellt]"
     "(https://github.com/m3adow/mswetterbericht) ^^und ^^ist ^^ohne ^^Unterschrift ^^gültig.*"
 )
-subreddit = "carbonarastrasse"
 
 
 def parse_args() -> Namespace:
@@ -21,7 +19,7 @@ def parse_args() -> Namespace:
     parser.add_argument("--prose-file", required=True)
     parser.add_argument("--instruments-file", required=True)
     parser.add_argument("--credentials-file", required=True)
-    parser.add_argument("--subreddit", default=subreddit)
+    parser.add_argument("--subreddit", required=True)
     args = parser.parse_args()
 
     return args
