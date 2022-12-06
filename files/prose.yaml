@@ -7,7 +7,7 @@ the_talk: |-
 
   {weather_line}
 
-  Und natürlich die Miesmuschel: !mm Wird heute ein grüner Tag?',
+  Und natürlich die Miesmuschel: !mm Wird heute ein grüner Tag?
 
 # Properties and prefixes for instruments ordered by instrument type
 # Note that sometimes a trailing space is needed as the prefixes are added directly in front of a word
