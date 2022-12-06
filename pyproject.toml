@@ -14,7 +14,7 @@ upsidedown = "^0.4"
 praw = "^7.6.0"
 yfinance = "^0.1.85"
 attrs = "^22.1.0"
-ruamel-yaml = "^0.17.21"
+"ruamel.yaml" = "^0.17.21"
 cloudscraper = "^1.2.65"
 js2py = "^0.74"
 
