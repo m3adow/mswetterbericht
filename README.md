@@ -26,15 +26,16 @@ to the instrument type you find fitting.
 
 ## Adding more instruments
 
-The MSWetterbericht works via submodules for web sites which are called data providers. There are either full-fledged
-data providers which should work for all or at least most instruments provided by the web site they are used for and
+The MSWetterbericht works via submodules for websites which are called data providers. There are either "full-fledged"
+data providers which should work for all or at least some instruments provided by the website they are used for and
 there are "half-assed" data providers which have only been written with one or two instruments in mind and will very
 likely not work for any other instrument.
 
-There are currently (_Dec-2022_) two full-fledged
+There are currently (_Dec-2022_) three full-fledged
 [data providers](https://github.com/m3adow/mswetterbericht/tree/main/mswetterbericht/data_providers) for
-[Yahoo Finance](https://finance.yahoo.com/) and [Investing.com](https://www.investing.com/) as well as one half-assed
-data provider for [onvista.de](https://www.onvista.de/).
+[CNBC](https://www.cnbc.com/world/), [Yahoo Finance](https://finance.yahoo.com/) and
+[Investing.com](https://www.investing.com/) as well as one half-assed data provider for
+[onvista.de](https://www.onvista.de/).
 
 There are two ways to extend the Wetterberichts instruments. Either by using an existing data provider to add a new
 instrument or by adding a new data provider for a new instrument.
