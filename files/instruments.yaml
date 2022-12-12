@@ -30,11 +30,37 @@ lines:
   weather: "* [Das Wetter in Dachsenhausen]({url}) soll heute **{forecast}** werden."
 
 instruments:
+  cnbc:
+    - description: Schatzkistenerträge
+      symbol: US10Y
+      url: https://www.cnbc.com/quotes/US10Y
+      priority: 40
+
+  investing_com:
+    - description: 🦡 Zukünfte
+      url: https://www.investing.com/indices/germany-30-futures
+    - description: Ⓜ🦡️ Zukünfte
+      url: https://www.investing.com/indices/germany-mid-cap-50-futures
+    - description: 🇪🇺🦯 Zukünfte
+      url: https://www.investing.com/indices/eu-stocks-50-futures
+    - description: 🧗🔥 Zukünfte
+      url: https://www.investing.com/indices/hong-kong-40-futures
+    - description: ☑🦈 Zukünfte
+      url: https://www.investing.com/indices/japan-225-futures
+
+  investing_com_upsidedown:
+    - description: Der ASX 200
+      url: https://www.investing.com/indices/aus-200
+      plural: false
+      type: upsidedown
+
+  onvista:
+    - description: CO2 Zertifikate
+      url: https://www.onvista.de/derivate/Index-Zertifikate/158135999-CU3RPS-DE000CU3RPS9
+      priority: 70
+      type: exciting
+
   yahoo_finance:
-    #    - description: Schatzkistenerträge
-    #      symbol: ^TNX
-    #      url: https://finance.yahoo.com/quote/%5ETNX/
-    #      priority: 40
     - description: 💦🦡 Zukünfte
       symbol: NQ=F
       url: https://finance.yahoo.com/quote/NQ%3DF?p=NQ%3DF
@@ -67,27 +93,3 @@ instruments:
       symbol: NG=F
       url: https://finance.yahoo.com/quote/NG%3DF?p=NG%3DF
       priority: 60
-
-  investing_com:
-    - description: 🦡 Zukünfte
-      url: https://www.investing.com/indices/germany-30-futures
-    - description: Ⓜ🦡️ Zukünfte
-      url: https://www.investing.com/indices/germany-mid-cap-50-futures
-    - description: 🇪🇺🦯 Zukünfte
-      url: https://www.investing.com/indices/eu-stocks-50-futures
-    - description: 🧗🔥 Zukünfte
-      url: https://www.investing.com/indices/hong-kong-40-futures
-    - description: ☑🦈 Zukünfte
-      url: https://www.investing.com/indices/japan-225-futures
-
-  investing_com_upsidedown:
-    - description: Der ASX 200
-      url: https://www.investing.com/indices/aus-200
-      plural: false
-      type: upsidedown
-
-  onvista:
-    - description: CO2 Zertifikate
-      url: https://www.onvista.de/derivate/Index-Zertifikate/158135999-CU3RPS-DE000CU3RPS9
-      priority: 70
-      type: exciting
