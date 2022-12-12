@@ -31,10 +31,10 @@ lines:
 
 instruments:
   yahoo_finance:
-    - description: Schatzkistenerträge
-      symbol: ^TNX
-      url: https://finance.yahoo.com/quote/%5ETNX/
-      priority: 40
+    #    - description: Schatzkistenerträge
+    #      symbol: ^TNX
+    #      url: https://finance.yahoo.com/quote/%5ETNX/
+    #      priority: 40
     - description: 💦🦡 Zukünfte
       symbol: NQ=F
       url: https://finance.yahoo.com/quote/NQ%3DF?p=NQ%3DF

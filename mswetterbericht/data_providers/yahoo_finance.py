@@ -15,7 +15,7 @@ class ProviderInstrument(Instrument):
         """Create a ProviderInstrument by querying Yahoo Finance and calculating required values"""
         ticker = yf.Ticker(instrument_data["symbol"])
         current_price = ticker.info["regularMarketPrice"]
-        old_price = ticker.info["open"]
+        old_price = ticker.info["regularMarketPreviousClose"]
         pct_change = round((((current_price - old_price) / old_price) * 100), 2)
 
         instrument_values = super().create_values(
