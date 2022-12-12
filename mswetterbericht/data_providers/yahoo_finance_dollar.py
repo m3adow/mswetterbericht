@@ -1,8 +1,9 @@
+import attr
+
 from mswetterbericht.data_providers.yahoo_finance import (
     ProviderInstrument as YFProviderInstrument,
 )
 from mswetterbericht.wetterbericht import InstrumentValues
-import attr
 
 
 @attr.define(kw_only=True)

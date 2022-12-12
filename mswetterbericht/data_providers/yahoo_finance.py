@@ -1,7 +1,7 @@
-from mswetterbericht.wetterbericht import Instrument
-
 import attr
 import yfinance as yf
+
+from mswetterbericht.wetterbericht import Instrument
 
 
 @attr.define(kw_only=True)

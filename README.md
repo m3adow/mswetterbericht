@@ -6,7 +6,7 @@ The tool is used to post the weather forecast to the Daily Thread of this subred
 
 The tool consists of two parts:
 
-- `wetterbericht.py`: The main part. A modularised Python script which scrapes several web sites for financial
+- `wetterbericht.py`: The main part. A modularised Python script which scrapes several websites for financial
   instrument data. It's easily extendable with new methods or instruments (see below)
 - `pfostierer.py`: A makeshift script to find the correct thread on the subreddit and post the result of
   the `wetterbericht.py` script
