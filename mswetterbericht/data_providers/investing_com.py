@@ -1,9 +1,10 @@
-from mswetterbericht.lib.web import resilient_request
-from mswetterbericht.wetterbericht import Instrument
 import logging
-import requests
+
 import attr
 from bs4 import BeautifulSoup
+
+from mswetterbericht.lib.web import resilient_request
+from mswetterbericht.wetterbericht import Instrument
 
 logger = logging.getLogger(__name__)
 

@@ -1,9 +1,10 @@
+import attr
+import upsidedown
+
 from mswetterbericht.data_providers.investing_com import (
     ProviderInstrument as InvestingDotComProviderInstrument,
 )
 from mswetterbericht.wetterbericht import InstrumentLine
-import attr
-import upsidedown
 
 
 @attr.define(kw_only=True)
@@ -34,7 +35,7 @@ class ProviderInstrument(InvestingDotComProviderInstrument):
     """Yahoo Finance ProviderInstrument with absolute_value in $$$"""
 
     @staticmethod
-    def create_line(line: str, plural: bool) -> InstrumentLine:
+    def create_line(line: list, plural: bool) -> InstrumentLine:
         """Create an InstrumentLine object
 
         Only required to be easily callable or overridable from modules"""

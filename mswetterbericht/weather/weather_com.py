@@ -1,6 +1,6 @@
-from mswetterbericht.lib.web import resilient_request
-import requests
 from bs4 import BeautifulSoup
+
+from mswetterbericht.lib.web import resilient_request
 
 #####
 # Note for potential future usage:

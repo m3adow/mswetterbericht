@@ -1,11 +1,11 @@
-from mswetterbericht.wetterbericht import Instrument
-from mswetterbericht.wetterbericht import InstrumentValues
-from mswetterbericht.lib.web import resilient_request
 import logging
-import requests
+
 import attr
 from bs4 import BeautifulSoup
 
+from mswetterbericht.lib.web import resilient_request
+from mswetterbericht.wetterbericht import Instrument
+from mswetterbericht.wetterbericht import InstrumentValues
 
 logger = logging.getLogger(__name__)
 
@@ -58,8 +58,6 @@ def get_price_and_change(url) -> list:
             "data",
             {"class": "color--cd-negative text-nowrap outer-spacing--xsmall-right"},
         ).contents[0]
-    # Change comma to dot and round to two digits
-    pretty_change = round(float(raw_price.replace(",", ".")), 2)
 
     # Change comma to dot and round to two digits before returning
     return [round(float(item.replace(",", ".")), 2) for item in [raw_price, raw_change]]

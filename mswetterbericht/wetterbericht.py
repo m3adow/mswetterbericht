@@ -1,9 +1,10 @@
-from argparse import ArgumentParser, Namespace
-from ruamel.yaml import YAML
-import attr
 import logging
+from argparse import ArgumentParser, Namespace
 from importlib import import_module
 from random import choice as random_choice
+
+import attr
+from ruamel.yaml import YAML
 
 # Configure logger
 logging.basicConfig(
