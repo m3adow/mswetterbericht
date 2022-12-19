@@ -11,7 +11,7 @@ CWD="${CWD:-${HOME}/src/mswetterbericht}"
 SUBREDDIT="${SUBREDDIT:-carbonarastrasse}"
 
 run_mswetterbericht() {
-  ${POETRY} run python mswetterbericht/pfostierer.py \
+  poetry run python mswetterbericht/pfostierer.py \
     --credentials-file "secret/praw-credentials.json" \
     --instruments-file "files/instruments.yaml" \
     --prose-file "files/prose.yaml" \
@@ -26,7 +26,7 @@ git pull
 # Try to update poetry modules when the normal wetterbericht fails
 if ! run_mswetterbericht
 then
-  ${POETRY} update
+  poetry update
   run_mswetterbericht \
     || exit 1
   # Reset branch afterwards to preserve auto-update via "git pull"
