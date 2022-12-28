@@ -26,9 +26,14 @@ git pull
 # Try to update poetry modules when the normal wetterbericht fails
 if ! run_mswetterbericht
 then
-  poetry update
-  run_mswetterbericht \
-    || exit 1
-  # Reset branch afterwards to preserve auto-update via "git pull"
-  git checkout --hard HEAD
+  poetry update \
+  && run_mswetterbericht
+  RET=$?
+  # Reset branch afterwards to preserve auto-update via "git pull" either way
+  git reset --hard HEAD
+  # Exit uncleanly in case of an unclean return code
+  if [ "${RET}" -ne 0 ]
+  then
+    exit 1
+  fi
 fi
