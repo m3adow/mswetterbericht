@@ -20,6 +20,9 @@ lines:
     exciting: >-
       * [{description}]({url}) {verb} **{change_word}**. Der Preis liegt bei **{absolute_value}** was einer Veränderung
       von **{pct_change}** zum Vortag entspricht.
+    letf: >-
+      * HebE(l)TF: Der {description} steht bei **{absolute_value}** und ist damit **{sma_difference}** Punkte vom
+      **{sma_type}** entfernt. Es gibt **{crosses}**.
     # The Upsidedown type has to use a list to keep Markdown formatting while upsidedown-ing the rest of the text
     # Every second item will be transformed
     upsidedown:
@@ -95,6 +98,17 @@ instruments:
       symbol: Sydney:AXJO
       type: upsidedown
 
+  letf_api:
+    - description: 💦🦡
+      symbol: ^NDX
+      sma_type: SMA220
+      type: letf
+      priority: 90
+    - description: 🕵️
+      symbol: ^GSPC
+      sma_type: SMA200
+      type: letf
+      priority: 90
   onvista:
     - description: CO2 Zertifikate
       url: https://www.onvista.de/derivate/Index-Zertifikate/158135999-CU3RPS-DE000CU3RPS9
