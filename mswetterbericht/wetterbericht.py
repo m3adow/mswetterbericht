@@ -123,7 +123,6 @@ class Instrument:
     """Prototype Class for all trading instruments in the forecast"""
 
     description: str
-    url: str
     # Instrument type
     type: str
     # Priority for ordering of prose lines, the lower the number, the earlier it will be added
@@ -132,6 +131,8 @@ class Instrument:
     values: InstrumentValues
     # InstrumentLine object filled with the correct attributes for this Instrument
     line: InstrumentLine
+    # Url of the instrument, defaulted to Rick Roll video if not provided (although it's probably never used then)
+    url: str = attr.field(default="https://www.youtube.com/watch?v=dQw4w9WgXcQ")
 
     @classmethod
     def from_instrument_data(cls, instrument_data):
@@ -232,7 +233,6 @@ def create_instruments(instruments_data: dict) -> list:
                 f"Skipping instruments of Data Provider '{data_provider}. Error was: '{e}'"
             )
             continue
-
     return instruments
 
 
