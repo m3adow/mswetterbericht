@@ -13,7 +13,7 @@ def resilient_request(
     """Do requests with retries on 5XX errors"""
     if additional_headers is None:
         additional_headers = {}
-    current_try = 0
+    current_try = 1
     backoff_time = backoff_factor
     scraper = cloudscraper.CloudScraper(interpreter="py2js")
     scraper.headers.update(additional_headers)
@@ -23,21 +23,21 @@ def resilient_request(
         if r.status_code == 200:
             break
         elif r.status_code <= 500 < 600:
-            logger.error(f"Got HTTP {r.status_code} on {current_try} try.")
+            logger.error(f"Got HTTP {r.status_code} on {current_try} try for {url}. 🤨")
             sleep(backoff_time)
             backoff_time += backoff_factor
             current_try += 1
             continue
         else:
             logger.critical(
-                f"Unexpected HTTP {r.status_code} on {current_try}. Exiting in panic!"
+                f"Unexpected HTTP {r.status_code} on {current_try}. try for {url}. Skipping in panic! 😱"
             )
-            exit(1)
+            raise cloudscraper.exceptions.CloudflareException
     else:
         logger.critical(
-            f"Could not get {url} afer {current_try} tries. Exiting sadly. :("
+            f"Could not get {url} afer {current_try} tries. Skipping sadly. 😭"
         )
-        exit(1)
+        raise cloudscraper.exceptions.CloudflareException
 
     # noinspection PyUnboundLocalVariable
     return r
