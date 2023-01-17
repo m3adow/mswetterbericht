@@ -1,6 +1,7 @@
+import json.decoder
 import logging
 import re
-
+import xmltodict
 import attr
 
 from mswetterbericht.lib.web import resilient_request
@@ -36,8 +37,14 @@ class ProviderInstrument(Instrument):
 
 
 def get_price_and_change(instrument_symbol) -> list:
-    r = resilient_request(api_base_path + instrument_symbol)
-    r_json = r.json()["FormattedQuoteResult"]["FormattedQuote"][0]
+    # As the API occasionally responds with XML (even with the additional headers), convert the answer if it's not JSON
+    r = resilient_request(
+        api_base_path + instrument_symbol, additional_headers=additional_headers
+    )
+    try:
+        r_json = r.json()["FormattedQuoteResult"]["FormattedQuote"][0]
+    except json.decoder.JSONDecodeError:
+        r_json = xmltodict.parse(r.text)["FormattedQuoteResult"]["FormattedQuote"]
     # Filter pre- and suffixes and remove thousands separator so the value can be converted to float
     current_value = float(number_regex.search(r_json["last"]).group().replace(",", ""))
     old_value = float(

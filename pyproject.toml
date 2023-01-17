@@ -18,6 +18,7 @@ attrs = "^22.1.0"
 cloudscraper = "^1.2.65"
 js2py = "^0.74"
 investiny = "^0.7.2"
+xmltodict = "^0.13.0"
 
 
 [build-system]
