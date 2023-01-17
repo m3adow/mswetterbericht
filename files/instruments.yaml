@@ -7,6 +7,9 @@ defaults:
 
 # Lines to use for different cases and for each instrument; expects a Markdown formatted F-String
 lines:
+  # One error line should be sufficient
+  error: >-
+    * [{description}]({url}) machte/machten Probleme. 😭.
   # Used when the instrument is not currently traded (still undecided if I'll re-implement that)
   #closed: '* [{description}]({url}) {verb} bei Marktschluss **{change_word}** gewesen, mit **{pct_change}** (Kurs: {absolute_value}).'
   # Special key; Used when encountering an error during retrieval of values; Not implemented yet
