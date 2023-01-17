@@ -1,7 +1,7 @@
 import attr
 import upsidedown
 
-from mswetterbericht.data_providers.investing_com import (
+from mswetterbericht.data_providers.investing_com_investiny import (
     ProviderInstrument as InvestingDotComProviderInstrument,
 )
 from mswetterbericht.wetterbericht import InstrumentLine

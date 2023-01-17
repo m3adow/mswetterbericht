@@ -36,22 +36,28 @@ instruments:
       url: https://www.cnbc.com/quotes/US10Y
       priority: 40
 
-  investing_com:
+  investing_com_investiny:
     - description: 🦡 Zukünfte
+      symbol: Eurex:DE30
       url: https://www.investing.com/indices/germany-30-futures
     - description: Ⓜ🦡️ Zukünfte
+      symbol: Eurex:FSMXc1
       url: https://www.investing.com/indices/germany-mid-cap-50-futures
     - description: 🇪🇺🦯 Zukünfte
+      symbol: Eurex:EU50
       url: https://www.investing.com/indices/eu-stocks-50-futures
     - description: 🧗🔥 Zukünfte
+      symbol: HKEx:HK50
       url: https://www.investing.com/indices/hong-kong-40-futures
     - description: ☑🦈 Zukünfte
+      symbol: OSE:JP225
       url: https://www.investing.com/indices/japan-225-futures
 
-  investing_com_upsidedown:
+  investing_com_investiny_upsidedown:
     - description: Der ASX 200
       url: https://www.investing.com/indices/aus-200
       plural: false
+      symbol: Sydney:AXJO
       type: upsidedown
 
   onvista:
