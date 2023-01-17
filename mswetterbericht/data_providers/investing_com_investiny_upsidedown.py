@@ -36,7 +36,5 @@ class ProviderInstrument(InvestingDotComProviderInstrument):
 
     @staticmethod
     def create_line(line: list, plural: bool) -> InstrumentLine:
-        """Create an InstrumentLine object
-
-        Only required to be easily callable or overridable from modules"""
+        """Create an UpsideDownLine object"""
         return UpsideDownLine(line=line, plural=plural)

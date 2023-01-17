@@ -123,7 +123,6 @@ class Instrument:
     """Prototype Class for all trading instruments in the forecast"""
 
     description: str
-    url: str
     # Instrument type
     type: str
     # Priority for ordering of prose lines, the lower the number, the earlier it will be added
@@ -132,6 +131,8 @@ class Instrument:
     values: InstrumentValues
     # InstrumentLine object filled with the correct attributes for this Instrument
     line: InstrumentLine
+    # Url of the instrument, defaulted to Rick Roll video if not provided (although it's probably never used then)
+    url: str = attr.field(default="https://www.youtube.com/watch?v=dQw4w9WgXcQ")
 
     @classmethod
     def from_instrument_data(cls, instrument_data):
@@ -216,9 +217,11 @@ def create_instruments(instruments_data: dict) -> list:
                     # Create a "fake" instrument which only contains the most important details for the error line
                     instruments.append(
                         Instrument(
-                            description=complete_instrument["description"],
-                            url=complete_instrument["url"],
-                            type=complete_instrument["type"],
+                            # Add the type to the description to be able to differentiate between the same instrument
+                            # for different types (e.g. Futures and LETF)
+                            description=f'{complete_instrument["description"]} ({complete_instrument["type"]})',
+                            # Use the default type as this should contain the absolute minimum requirements
+                            type=defaults["type"],
                             priority=complete_instrument["priority"],
                             values=InstrumentValues(
                                 pct_change=-1337, absolute_value=-1337
@@ -232,7 +235,6 @@ def create_instruments(instruments_data: dict) -> list:
                 f"Skipping instruments of Data Provider '{data_provider}. Error was: '{e}'"
             )
             continue
-
     return instruments
 
 
