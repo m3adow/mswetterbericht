@@ -97,38 +97,3 @@ instruments:
       url: https://www.onvista.de/derivate/Index-Zertifikate/158135999-CU3RPS-DE000CU3RPS9
       priority: 70
       type: exciting
-# Do not use yfinance (and thusly Yahoo Finance) for now, as it's faulty
-
-#  yahoo_finance:
-#    - description: 💦🦡 Zukünfte
-#      symbol: NQ=F
-#      url: https://finance.yahoo.com/quote/NQ%3DF?p=NQ%3DF
-#    - description: 🕵️ Zukünfte
-#      symbol: ES=F
-#      url: https://finance.yahoo.com/quote/ES%3DF?p=ES%3DF
-#    - description: 🐘 2000 Zukünfte
-#      symbol: RTY=F
-#      url: https://finance.yahoo.com/quote/RTY%3DF?p=RTY%3DF
-#    - description: DAU Johannes Zukünfte
-#      symbol: RTY=F
-#      url: https://finance.yahoo.com/quote/YM%3DF?p=YM%3DF
-
-#  yahoo_finance_dollar:
-#    - description: Der 🦯🪙 kurs
-#      symbol: BTC-USD
-#      url: https://finance.yahoo.com/quote/BTC-USD?p=BTC-USD&.tsrc=fin-srch
-#      plural: false
-#      priority: 80
-#      type: exciting
-#    - description: 🔥🛢 Zukünfte
-#      symbol: BZ=F
-#      url: https://finance.yahoo.com/quote/BZ%3DF?p=BZ%3DF
-#      priority: 60
-#    - description: 🥇 Zukünfte
-#      symbol: GC=F
-#      url: https://finance.yahoo.com/quote/GC%3DF?p=GC%3DF
-#      priority: 60
-#    - description: 🌎💨 Zukünfte
-#      symbol: NG=F
-#      url: https://finance.yahoo.com/quote/NG%3DF?p=NG%3DF
-#      priority: 60
