@@ -15,7 +15,7 @@ class EuroValues(InstrumentValues):
     @property
     def pretty_absolute_value(self) -> str:
         """Prettify absolute_value with additional Euro symbol"""
-        return f"{super().pretty_absolute_value} €"
+        return f"{super().pretty_absolute_value}€"
 
 
 @attr.define(kw_only=True)
@@ -26,7 +26,7 @@ class ProviderInstrument(Instrument):
     def from_instrument_data(cls, instrument_data):
         """Create a ProviderInstrument by scraping Onvista"""
         current_price, pct_change = get_price_and_change(instrument_data["url"])
-        instrument_values = super().create_values(
+        instrument_values = EuroValues(
             pct_change=pct_change, absolute_value=current_price
         )
         return cls(**instrument_data, values=instrument_values)
