@@ -217,9 +217,11 @@ def create_instruments(instruments_data: dict) -> list:
                     # Create a "fake" instrument which only contains the most important details for the error line
                     instruments.append(
                         Instrument(
-                            description=complete_instrument["description"],
-                            url=complete_instrument["url"],
-                            type=complete_instrument["type"],
+                            # Add the type to the description to be able to differentiate between the same instrument
+                            # for different types (e.g. Futures and LETF)
+                            description=f'{complete_instrument["description"]} ({complete_instrument["type"]})',
+                            # Use the default type as this should contain the absolute minimum requirements
+                            type=defaults["type"],
                             priority=complete_instrument["priority"],
                             values=InstrumentValues(
                                 pct_change=-1337, absolute_value=-1337
