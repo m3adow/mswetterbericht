@@ -12,12 +12,13 @@ beautifulsoup4 = "^4.11.1"
 requests = "^2.28.1"
 upsidedown = "^0.4"
 praw = "^7.6.0"
-yfinance = "^0.1.85"
+yfinance = "^0.2.4"
 attrs = "^22.1.0"
 "ruamel.yaml" = "^0.17.21"
 cloudscraper = "^1.2.65"
 js2py = "^0.74"
 investiny = "^0.7.2"
+xmltodict = "^0.13.0"
 
 
 [build-system]
