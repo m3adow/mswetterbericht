@@ -17,11 +17,6 @@ logger.setLevel(logging.DEBUG)
 yaml = YAML(typ="safe")
 
 
-# Converter function for object
-def strip_line(line: str) -> str:
-    return line.strip()
-
-
 @attr.define(kw_only=True)
 class ProseGenerator:
     """Helper class for formatting stuff"""
@@ -84,7 +79,7 @@ class ProseGenerator:
 class InstrumentLine:
     """Class for instrument lines, used for formatting"""
 
-    line: str = attr.field(converter=strip_line)
+    line: str = attr.field(converter=lambda x: x.strip())
     plural: bool
 
     @property
@@ -191,18 +186,47 @@ def create_instruments(instruments_data: dict) -> list:
                 complete_instrument = defaults.copy()
                 complete_instrument.update(instrument)
 
-                # Putting the creation here instead of in the modules enables internal changes without needing to change
-                # each module
-                complete_instrument["line"] = provider_instrument.create_line(
-                    plural=complete_instrument.pop("plural"),
-                    line=instruments_data["lines"]["instruments"][
-                        complete_instrument["type"]
-                    ],
-                )
+                # We may need this twice
+                plural = complete_instrument.pop("plural")
+                # noinspection PyBroadException
+                try:
+                    # Putting the creation here instead of in the modules enables internal changes without needing to
+                    # change each module
 
-                instruments.append(
-                    provider_instrument.from_instrument_data(complete_instrument)
-                )
+                    complete_instrument["line"] = provider_instrument.create_line(
+                        plural=plural,
+                        line=instruments_data["lines"]["instruments"][
+                            complete_instrument["type"]
+                        ],
+                    )
+                    instruments.append(
+                        provider_instrument.from_instrument_data(complete_instrument)
+                    )
+
+                # Yep, the exception being that broad is intentional
+                except Exception as e:
+                    logger.error(
+                        f"Encountered error for "
+                        f"'{complete_instrument.get('description', 'unknown instrument')}'. Error args: {e.args}"
+                    )
+                    # Use the error line for faulty instruments
+                    complete_instrument["line"] = provider_instrument.create_line(
+                        plural=plural, line=instruments_data["lines"]["error"]
+                    )
+                    # Create a "fake" instrument which only contains the most important details for the error line
+                    instruments.append(
+                        Instrument(
+                            description=complete_instrument["description"],
+                            url=complete_instrument["url"],
+                            type=complete_instrument["type"],
+                            priority=complete_instrument["priority"],
+                            values=InstrumentValues(
+                                pct_change=-1337, absolute_value=-1337
+                            ),
+                            line=complete_instrument["line"],
+                        )
+                    )
+
         except (ModuleNotFoundError, AttributeError) as e:
             logger.error(
                 f"Skipping instruments of Data Provider '{data_provider}. Error was: '{e}'"
