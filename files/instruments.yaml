@@ -43,13 +43,13 @@ instruments:
       url: https://www.cnbc.com/quotes/%40ND.1
     - description: 🕵️ Zukünfte
       symbol: "@SP.1"
-      url: https://www.cnbc.com/quotes/%2540SP.1
+      url: https://www.cnbc.com/quotes/%40SP.1
     - description: DAU Johannes Zukünfte
       symbol: "@DJ.1"
-      url: https://www.cnbc.com/quotes/%2540DJ.1
+      url: https://www.cnbc.com/quotes/%40DJ.1
     - description: 🐘 2000 Zukünfte
       symbol: "@TFS.1"
-      url: https://www.cnbc.com/quotes/%2540TFS.1
+      url: https://www.cnbc.com/quotes/%40TFS.1
 
   cnbc_dollar:
     - description: Der 🦯🪙 kurs
